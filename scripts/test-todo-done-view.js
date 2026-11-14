@@ -8,7 +8,7 @@ const done = require('../src/core/todo-done-view');
 async function main() {
   const base = process.env.AIHUB_TEST_ROOT || path.join(os.tmpdir(), 'ai-hub-done-tests');
   fs.mkdirSync(base, { recursive: true });
-  const root = fs.mkdtempSync(path.join(base, 'read-only-'));
+  const root = await fs.promises.realpath(fs.mkdtempSync(path.join(base, 'read-only-')));
   for (const dir of ['tools', 'todo-queue/definitions', 'docs', 'reports']) fs.mkdirSync(path.join(root, dir), { recursive: true });
   for (const file of ['tools/todo_queue.py', 'tools/todo_done.py', 'docs/task.md', 'reports/result.json']) fs.writeFileSync(path.join(root, file), 'fixture');
   const fp = 'a'.repeat(64), activeFp = 'b'.repeat(64);
