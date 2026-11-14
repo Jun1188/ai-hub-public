@@ -2759,11 +2759,11 @@
     },
     {
       "path": "VALIDATION.md",
-      "bytes": 2163,
-      "sha256": "20ea356f03fee7db3c3e037fc99f9df0277d78303a33c534214236006393ebc8"
+      "bytes": 2768,
+      "sha256": "df88a1116ee1e46226b50799886343115b5345b3062347c52f3969f74f0c5984"
     }
   ],
   "fileCount": 552,
-  "bytes": 6623117,
+  "bytes": 6623722,
   "scope": "Public application source and vendor license/provenance files. Dependency installs, executable build inputs, user profiles and private operational documents are excluded. Pattern scanning supplements reviewed source boundaries; it is not proof of absence of every secret."
 }
