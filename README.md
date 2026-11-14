@@ -16,6 +16,8 @@ Use the published Setup to install in a new per-user directory. Open **AI Hub Li
 
 This is a public Lite variant, not a complete reproduction of the maintainer's private operational setup. Full-only background publishing and deployment automation are intentionally outside the public profile. See `public-profile.json` for the source boundary and `VALIDATION.md` for the exact checks and limitations. Until validation is complete, source previews are not an installation-success claim.
 
+**Known limitations in 1.32.61:** the bundled HerdR 0.9.5 runtime launches and its version is verified. Task delivery has known adapter defects involving prompt argument rejection, Codex completion waits and onboarding readiness. Corrections are being prepared separately for 1.32.62. Claude onboarding and Antigravity workspace trust require the user's direct interaction. A successful agent task handoff is not certified by the package/version checks.
+
 ## License
 
 Project code: MIT, copyright 2026 Jun1188. Third-party components retain their own licenses; see `THIRD-PARTY-NOTICES.md` and the included vendor license files. No signing certificate is bundled; any unsigned installer must be identified as unsigned in the release notes.

@@ -209,8 +209,8 @@
     },
     {
       "path": "README.md",
-      "bytes": 2805,
-      "sha256": "37a63191f71d9d93f44be513154d0aac8c57b26f817653ee5a5e20acb486ce56"
+      "bytes": 3260,
+      "sha256": "620e224b64fd0fd4c02da79737f4e2006f9bf0ef585e81734f19128e47e53fa7"
     },
     {
       "path": "resources/herdr/herdr-manifest.json",
@@ -2759,11 +2759,11 @@
     },
     {
       "path": "VALIDATION.md",
-      "bytes": 3784,
-      "sha256": "8d2baa22405bc63e72dbd1e4976f7c2cfdeffca20c2eca4062e0c1b2411803ab"
+      "bytes": 4227,
+      "sha256": "46ca715ff6ac932863ec4b74d3a2d490ddbdbd4ddc0d3c48ef05284788288447"
     }
   ],
   "fileCount": 552,
-  "bytes": 6624766,
+  "bytes": 6625664,
   "scope": "Public application source and vendor license/provenance files. Dependency installs, executable build inputs, user profiles and private operational documents are excluded. Pattern scanning supplements reviewed source boundaries; it is not proof of absence of every secret."
 }
