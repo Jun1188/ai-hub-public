@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "checkedWith": "agy 1.4.2 `agy models`, 2026-10-18",
+  "tiers": {
+    "fast": { "model": "gemini-4-argon-low", "effort": "low" },
+    "reasoning": { "model": "gemini-4-argon-low", "effort": "low" },
+    "deep": { "model": "gemini-4-argon-high", "effort": "high" }
+  }
+}

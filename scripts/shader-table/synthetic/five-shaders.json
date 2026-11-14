@@ -1,0 +1,45 @@
+{
+ "schemaVersion": 1,
+ "note": "Synthetic. No real capture, GPU or engine produced these values.",
+ "frameCapture": {
+  "capture": null, "api": "D3D12", "events": 18250, "drawCalls": 6900, "gpu": null, "passBasis": "markers",
+  "passes": [
+   {"name": "BasePass", "draws": 1500, "dispatches": 0, "triangles": 2400000},
+   {"name": "Translucency", "draws": 5200, "dispatches": 0, "triangles": 310000}
+  ],
+  "largestResources": []
+ },
+ "shaders": [
+  {
+   "id": "s1-clean-lit", "capture": {"source": "synthetic"}, "pass": "BasePass", "stage": "pixel",
+   "textures": [{"name": "albedo", "format": "BC7_UNORM_SRGB", "colorSpace": "srgb", "sampledAs": "srgb"}],
+   "coordinates": [{"name": "normal", "space": "world", "consumedAs": "world"}],
+   "units": [{"name": "roughness", "unit": "0-1", "consumedAs": "0-1"}],
+   "observations": {"nanPixels": 0, "infPixels": 0, "drawCalls": 120, "drawCallBudget": 500,
+                    "resourceBytesByFrame": [104857600, 105906176, 104857600]}
+  },
+  {
+   "id": "s2-normal-space", "capture": {"source": "synthetic"}, "pass": "BasePass", "stage": "pixel",
+   "textures": [{"name": "albedo", "format": "BC7_UNORM", "colorSpace": "srgb", "sampledAs": "linear"},
+                {"name": "normalMap", "format": "BC5_UNORM", "colorSpace": "data", "sampledAs": "data"}],
+   "coordinates": [{"name": "normal", "space": "tangent", "consumedAs": "world"},
+                   {"name": "lightDir", "space": "world", "consumedAs": "world"}],
+   "units": [{"name": "roughness", "unit": "0-1", "consumedAs": "0-1"}]
+  },
+  {
+   "id": "s3-units", "capture": {"source": "synthetic"}, "pass": "PostProcess", "stage": "pixel",
+   "coordinates": [{"name": "screenUV", "space": "uv", "consumedAs": "uv"}],
+   "units": [{"name": "fov", "unit": "degree", "consumedAs": "radian"},
+             {"name": "sceneDepth", "unit": "cm", "consumedAs": "m"},
+             {"name": "exposure", "unit": "ev", "consumedAs": "ev"}]
+  },
+  {
+   "id": "s4-nan-overdraw", "capture": {"source": "synthetic"}, "pass": "Translucency", "stage": "pixel",
+   "observations": {"nanPixels": 128, "infPixels": 0, "drawCallBudget": 2000}
+  },
+  {
+   "id": "s5-resource-growth", "capture": {"source": "synthetic"}, "pass": "ShadowDepth", "stage": "vertex",
+   "observations": {"nanPixels": 0, "resourceBytesByFrame": [209715200, 241172480, 274726912, 314572800]}
+  }
+ ]
+}

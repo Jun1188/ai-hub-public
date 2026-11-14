@@ -1,0 +1,28 @@
+{
+ "schemaVersion": 1,
+ "note": "Synthetic regression: near-miss values that must not be reported.",
+ "frameCapture": {
+  "capture": null, "api": "D3D12", "events": 900, "drawCalls": 9000, "gpu": null, "passBasis": "api",
+  "passes": [{"name": "SomeOtherPass", "draws": 9000, "dispatches": 0, "triangles": 10}],
+  "largestResources": []
+ },
+ "shaders": [
+  {
+   "id": "f1-at-the-edge", "capture": {"source": "synthetic"}, "pass": "BasePass", "stage": "pixel",
+   "textures": [{"name": "albedo", "format": "BC7_UNORM_SRGB", "colorSpace": "srgb", "sampledAs": "srgb"}],
+   "coordinates": [{"name": "nanite_uv", "space": "uv", "consumedAs": "uv"},
+                   {"name": "normal", "space": "tangent", "consumedAs": "tangent"}],
+   "units": [{"name": "fov", "unit": "degree", "consumedAs": "degree"}],
+   "observations": {"nanPixels": 0, "infPixels": 0, "drawCalls": 2000, "drawCallBudget": 2000,
+                    "resourceBytesByFrame": [1000, 2000, 3000]}
+  },
+  {
+   "id": "f2-sawtooth", "capture": {"source": "synthetic"}, "pass": "Translucency", "stage": "pixel",
+   "textures": [{"name": "noise", "format": "R8_UNORM", "colorSpace": "data", "sampledAs": "data"}],
+   "coordinates": [{"name": "worldPos", "space": "world", "consumedAs": "world"}],
+   "units": [{"name": "depth", "unit": "cm", "consumedAs": "cm"}],
+   "observations": {"nanPixels": 0, "drawCallBudget": 2000,
+                    "resourceBytesByFrame": [500000000, 600000000, 550000000, 700000000]}
+  }
+ ]
+}

@@ -13,6 +13,8 @@ let passed = 0, failed = 0;
 function test(name, fn) {
   try { fn(); passed++; } catch (error) { failed++; process.stderr.write(name + ': ' + error.message + '\n'); }
 }
+// 위험 예시는 파일·명령줄에 원형으로 두지 않는다: Defender가 그런 문자열이 실린 명령줄을 LummaStealer ClickFix로
+// 차단했다(2026-10-22). 가운뎃점(U+00B7)을 끼워 저장하고 시험할 때만 지운다.
 const unmask = (t) => t.replace(/\u00b7/g, '');
 function fires(id, text, file = 'sample.sh') {
   test(id + ': ' + text.slice(0, 50), () => assert(scanText(unmask(text), { path: file }).findings.some(f => f.rule === id)));

@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "hub-passthrough/1",
+  "version": 1,
+  "transport": "local-named-pipe-json-lines",
+  "maxFrameBytes": 4096,
+  "heartbeatTimeoutMs": 2000,
+  "coordinates": { "unit": "meter", "up": "Y", "handedness": "right" },
+  "time": { "unit": "millisecond", "clock": "local-monotonic" },
+  "ownership": { "world": "host", "motion": "guest" },
+  "frame": {
+    "required": ["version", "epoch", "role", "seq", "timeMs", "kind"],
+    "kinds": ["hello", "heartbeat", "state"],
+    "state": { "topic": "world | motion", "position": "finite [x,y,z] in canonical meters" }
+  },
+  "references": [
+    "https://github.com/chasmlol/SkyCraft/blob/main/protocol/skycraft_protocol.h",
+    "https://github.com/Orinkle/passthrough-mod-toolkit"
+  ],
+  "status": "fake-host-guest-contract; game adapters require target/version verification"
+}

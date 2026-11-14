@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data: https:; font-src 'self' data:; frame-src 'self' about: https://embed.figma.com http://127.0.0.1:* http://localhost:*" />
+  <title>ai-hub</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="pipeline-graph.css" />
+  <link rel="stylesheet" href="knowledge-graph.css" />
+  <link rel="stylesheet" href="vendor/grapesjs/grapes.min.css" />
+  <link rel="stylesheet" href="creation-studio.css" />
+</head>
+<body>
+  <header>
+    <div class="logo">🧠 ai-hub</div>
+    <!-- 묶음 줄이 아래 화면 줄(#tabs)의 묶음을 고른다. 화면 단추는 그대로 #tabs [data-tab]이다(shell.js). -->
+    <nav id="tab-groups" aria-label="기능 묶음">
+      <button data-group="monitor" class="active" title="지금 상태 · 느려진 원인 · 지난 활동">상태·진단</button>
+      <button data-group="work" title="에이전트 · 로컬 모델 · MCP 연결 · 파이프라인 · 게임 프로젝트">작업</button>
+      <button data-group="knowledge" title="지식 그래프와 참조 지표 · 스킬 · 소스 분석 · 메모리">지식·분석</button>
+      <button data-group="improve" title="평가 · RSI 제안 · 사람 승인">개선</button>
+      <button data-group="settings" class="tab-group-end">설정</button>
+    </nav>
+  </header>
+  <nav id="tabs" aria-label="화면">
+    <span class="tab-group" data-group="monitor"><button data-tab="dashboard" class="active">대시보드</button><button data-tab="debugging">디버깅</button><button data-tab="history">이력</button></span>
+    <span class="tab-group" data-group="work" hidden><button data-tab="aider">에이전트 작업실</button><button data-tab="creation">리소스 제작실</button><button data-tab="orchestration">Herdr</button><button data-tab="pipelines">파이프라인</button><button data-tab="projects">프로젝트</button></span>
+    <span class="tab-group" data-group="knowledge" hidden><button data-tab="knowledge">지식 그래프</button><button data-tab="skills">스킬 등록</button><button data-tab="source">소스 분석</button><button data-tab="learning">학습</button><button data-tab="memory">메모리</button></span>
+    <span class="tab-group" data-group="improve" hidden><button data-tab="selfimprove">자가개선</button></span>
+    <span class="tab-group" data-group="settings" hidden><button data-tab="settings">설정</button></span>
+  </nav>
+
+
+
+  <main>
+
+    <section id="tab-creation" class="tab">
+      <div class="cs-heading"><div><h1>리소스 제작실</h1><p>화면에서 직접 만들고, 선택한 부분을 AI와 함께 다듬습니다.</p></div><span>편집 → 변경안 검토 → 저장 → 내보내기</span></div>
+      <div class="cs-tabs" role="tablist" aria-label="리소스 제작 종류">
+        <button role="tab" aria-selected="true" aria-controls="cs-pane-web" data-creation-pane="web">웹 디자인</button>
+        <button role="tab" aria-selected="false" aria-controls="cs-pane-images" data-creation-pane="images">이미지·리소스</button>
+        <button role="tab" aria-selected="false" aria-controls="cs-pane-game" data-creation-pane="game">게임개발 스킬</button>
+        <button role="tab" aria-selected="false" aria-controls="cs-pane-figma" data-creation-pane="figma">Figma 참조</button>
+      </div>
+      <div id="cs-pane-web" class="cs-pane" role="tabpanel">
+        <div class="cs-toolbar"><label for="cs-docs">문서</label><select id="cs-docs"></select><input id="cs-name" aria-label="디자인 이름"><button id="cs-new">새 문서</button><button id="cs-save" class="primary">저장</button><button id="cs-reload">다시 열기</button><button id="cs-import">HTML·JSON 가져오기</button><button id="cs-export-json">편집 JSON 내보내기</button><button id="cs-export-html">HTML 내보내기</button></div>
+        <div class="cs-toolbar"><button id="cs-undo">실행 취소</button><button id="cs-redo">다시 실행</button><label for="cs-device">화면 크기</label><select id="cs-device"><option>Desktop</option><option>Tablet</option><option>Mobile</option></select><button id="cs-preview">미리보기 전환</button><button id="cs-image">이미지 파일 넣기</button></div>
+        <div class="cs-toolbar"><input id="cs-page-url" aria-label="편집할 공개 GitHub Pages 주소" value="https://example.org/"><button id="cs-page-import">Awesome·웹페이지 가져오기</button><span class="hint">원본 사이트는 유지하고 편집용 디자인을 만듭니다.</span></div>
+        <p id="cs-status" role="status" aria-live="polite">웹 디자인을 여는 중</p>
+        <div class="cs-layout"><div class="cs-workspace"><div id="cs-canvas" aria-label="직접 편집할 웹 디자인"></div><p class="hint">블록을 끌어 놓고, 글자를 두 번 눌러 편집하세요. 오른쪽 스타일 패널에서 간격·열·색상을 바꿀 수 있습니다. 편집은 이 PC에 자동 저장되며 공개 사이트 게시는 별도입니다.</p></div>
+          <aside class="card cs-sidebar"><h2>선택 요소와 AI 협업</h2><div id="cs-selected"></div><button id="cs-parent">상위 레이아웃 선택</button><label for="cs-instruction">수정 지시</label><textarea id="cs-instruction" rows="5" placeholder="예: 이 카드의 제목은 유지하고 이미지와 본문 사이 간격만 16px로 줄여줘. 모바일에서는 세로로 배치해줘."></textarea>
+            <label for="cs-ai-worker">AI 작업자</label><select id="cs-ai-worker"><option value="codex">Codex</option><option value="agy">Antigravity</option></select>
+            <label class="row"><input id="cs-ai-consent" type="checkbox">선택 요소의 글자·스타일·하위 요소를 선택한 AI에 보냅니다.</label>
+            <button id="cs-ai-send" class="primary">선택 부분 수정 요청</button><button id="cs-ai-cancel" disabled>AI 요청 취소</button><button id="cs-ai-context">현재 채팅에 전달할 요소 정보</button>
+            <details><summary>선택 범위 정보</summary><textarea id="cs-context" rows="8" readonly></textarea><p class="hint">Hub MCP의 creation_studio_read / creation_studio_propose로 현재 채팅에서도 같은 문서에 변경안을 보낼 수 있습니다.</p></details><div id="cs-proposals" aria-live="polite"></div>
+          </aside>
+        </div>
+      </div>
+      <div id="cs-pane-images" class="cs-pane" role="tabpanel" hidden>
+        <div class="cs-resource-grid"><div class="card"><h2>이미지 도구 연결</h2><p class="hint">GPT Image·Antigravity Image는 등록된 MCP 도구를 선택해 실행합니다. 공급자별 입력 계약을 그대로 표시하며 키는 기존 연결의 암호화 저장소에서 관리합니다.</p>
+          <label for="cr-provider">리소스 공급자</label><select id="cr-provider"><option value="gpt-image">GPT Image</option><option value="antigravity-image">Antigravity Image</option></select><div class="row"><button id="cr-refresh">연결 목록</button><button id="cr-connections">MCP 연결 설정</button></div>
+          <label for="cr-server">MCP 서버</label><select id="cr-server"><option value="">연결 목록을 불러오세요</option></select><label for="cr-tool">제작 도구</label><select id="cr-tool"></select><details><summary>실제 도구의 입력 명세</summary><pre id="cr-schema" class="output"></pre></details><label for="cr-args">제작 입력 (도구 명세에 맞는 JSON)</label><textarea id="cr-args" rows="7">{"prompt":"게임 UI용 배경 이미지"}</textarea><button id="cr-run" class="primary">리소스 제작 요청</button>
+        </div><div class="card"><h2>ComfyUI</h2><p>기존 로컬 워크플로와 GPU 실행 제어를 그대로 사용합니다.</p><button id="cr-comfy-controls">런타임 상태·시작</button><button id="cr-comfy-show">연결된 ComfyUI 화면 열기</button><label for="cr-comfy-workflow">API 워크플로 JSON 경로</label><input id="cr-comfy-workflow"><label for="cr-comfy-inputs">노드 입력</label><textarea id="cr-comfy-inputs" rows="4">{}</textarea><button id="cr-comfy-run">ComfyUI 워크플로 실행</button></div></div>
+
+        <div class="card"><h2>Herdr 에이전트에서 리소스 제작</h2><p>이미지 MCP가 없으면 Codex·Antigravity의 기존 세션에 제작을 지시할 수 있습니다. 실제 이미지 기능·할당량은 해당 에이전트의 응답으로 확인합니다. 결과 파일은 웹 디자인의 이미지 파일 넣기로 가져오세요.</p><div class="row"><label for="cr-herdr-session">세션</label><input id="cr-herdr-session" value="default"><label for="cr-herdr-target">에이전트 pane</label><input id="cr-herdr-target" placeholder="w1:p1"></div><label for="cr-herdr-prompt">이미지 제작 지시</label><textarea id="cr-herdr-prompt" rows="4" placeholder="예: 투명 배경의 2D 게임 아이콘 4개. 결과를 프로젝트의 Generated 폴더에 저장해줘."></textarea><button id="cr-herdr-run">선택한 공급자로 제작 지시</button><button id="cr-herdr-open">Herdr 세션 관리</button><pre id="cr-herdr-output" class="output"></pre></div>
+        <div id="cr-gallery" class="cs-gallery"></div><pre id="cr-output" class="output" aria-live="polite"></pre><iframe id="cr-comfy-frame" class="cs-frame" title="이 PC의 ComfyUI" sandbox="allow-scripts allow-same-origin allow-forms allow-downloads"></iframe>
+      </div>
+      <div id="cs-pane-game" class="cs-pane" role="tabpanel" hidden><div class="card"><h2>게임개발 스킬과 제작 루프</h2><div class="cs-steps"><span>기획</span><span>리소스</span><span>구현</span><span>플레이</span><span>검토·반복</span></div><p>스킬을 읽고 선택한 게임개발 노드에 연결하세요. 실제 에디터 작업은 연결된 Unity·Unreal 도구와 승인된 파이프라인에서 실행합니다.</p><div class="row"><input id="cr-skill-query" aria-label="게임 스킬 검색어" placeholder="예: unity, sprite, ue5"><button id="cr-skill-search">게임 스킬 찾기</button><button id="cr-game-pipeline">게임개발 그래프 열기</button></div><div id="cr-skills"></div><pre id="cr-skill-text" class="output"></pre></div></div>
+      <div id="cs-pane-figma" class="cs-pane" role="tabpanel" hidden><div class="card"><h2>Figma 참조</h2><p>디자인·프로토타입을 나란히 참조합니다. Figma 임베드는 파일 보기 기능이며, 세부 편집은 Figma에서 진행합니다.</p><div class="row"><input id="cs-figma-url" aria-label="Figma 파일 주소" placeholder="https://www.figma.com/design/..."><button id="cs-figma-show">파일 표시</button></div><iframe id="cs-figma-frame" class="cs-frame" title="Figma 디자인 참조" sandbox="allow-scripts allow-same-origin allow-popups" allowfullscreen></iframe></div></div>
+    </section>
+    <section id="tab-orchestration" class="tab"><div class="card"><h1>Herdr 오케스트레이션</h1><p>터미널 세션 안의 실제 에이전트를 살펴보고 작업·대기·분할을 관리합니다. 승인 대기 상태를 자동으로 통과시키지 않습니다.</p>
+      <div class="row"><label for="hd-session">세션</label><input id="hd-session" value="default"><button id="hd-refresh">상태 새로고침</button><button id="hd-session-start">이 이름으로 세션 시작</button></div><pre id="hd-sessions"></pre>
+      <div class="cs-resource-grid"><div><h2>워크스페이스·에이전트</h2><pre id="hd-agents" class="output"></pre><label for="hd-target">대상 pane</label><select id="hd-target"></select><button id="hd-split">오른쪽 pane 추가</button><button id="hd-read">최근 출력 읽기</button><button id="hd-wait">완료 상태 기다리기</button>
+      <label for="hd-project">등록 프로젝트</label><select id="hd-project"></select><button id="hd-workspace">프로젝트 워크스페이스 만들기</button><label for="hd-kind">새 에이전트 종류</label><select id="hd-kind"><option value="codex">Codex</option><option value="claude">Claude Code</option><option value="agy">Antigravity</option><option value="gemini">Gemini</option></select><label for="hd-name">에이전트 이름</label><input id="hd-name" value="game-designer"><button id="hd-start">대상 pane에서 에이전트 시작</button></div>
+      <div><h2>대상 에이전트에 작업 전달</h2><label for="hd-instruction">작업 지시</label><textarea id="hd-instruction" rows="8" placeholder="작업 범위·완료 조건·출력 위치를 적으세요."></textarea><button id="hd-prompt" class="primary">지시 전달 후 상태 대기</button><pre id="hd-output" class="output" aria-live="polite"></pre><p class="hint">타임아웃·연결 단절은 완료 증거가 아닙니다. 같은 요청 ID로 기록을 확인하고 대상 세션에서 작업 상태를 먼저 확인하세요. 세션마다 별도의 작업 상태를 사용합니다.</p></div></div>
+    </div></section>
+
+    <!-- ============ 대시보드 ============ -->
+    <section id="tab-dashboard" class="tab active">
+      <div class="card">
+        <h2>로컬 자원 모니터 <span class="hint">프로세스마다 PID와 점유를 재고, 줄의 상세 · 렌더 병목 단추로 디버깅 측정을 이어서 시작합니다</span></h2>
+        <div id="resource-snapshot" class="statusline" aria-live="polite">측정 대기</div>
+        <div class="res-controls"><label class="row">기간 <select id="res-window"><option value="600">10분</option><option value="3600">1시간</option><option value="86400">24시간</option></select></label>
+          <button id="res-export" class="small">Perfetto 추적 파일로 내보내기</button><span id="res-export-result" class="hint" aria-live="polite"></span></div>
+        <div id="res-machine" class="statusline"></div>
+        <table id="res-procs" class="table"></table>
+        <ul id="res-findings" class="res-findings"></ul>
+<h3 class="res-dev-title">개발 도구 (Unreal · Unity) <span class="hint">최근 1분 · 5초마다 갱신 · 편집기 로그와 엔진 자체 기록 연결</span></h3>
+<div id="res-dev" class="res-dev" aria-live="polite"></div>
+        <details>
+          <summary>API 키를 이 PC에 암호화 저장</summary>
+          <p class="hint">AES-GCM과 Windows 계정으로 보호한 로컬 키 테이블을 사용합니다. AI에는 키 참조만 전달하고 로컬 브로커가 통신합니다. 다른 PC에서 다시 등록해야 합니다.</p>
+          <select id="vault-provider"><option value="lmstudio">LM Studio</option><option value="llamacpp">llama.cpp</option></select>
+          <input id="vault-secret" type="password" autocomplete="off" placeholder="API 키" />
+          <button id="vault-save">암호화 저장</button>
+          <span id="vault-result" class="hint" aria-live="polite"></span>
+          <p class="hint">Discord·GitHub 같은 외부 서비스의 키는 주소·허용 경로와 함께 <b>설정 › 외부 연결</b>에서 등록합니다. <button id="vault-goto-external" class="small">외부 연결 열기</button></p>
+        </details>
+        <p class="hint">프로세스별 CPU·GPU 엔진(3D/Compute/Copy/Video)·전용/공유 VRAM을 2초마다 기록하고, Hub 작업은 자식 프로세스까지 묶어 보여 줍니다. 상위 AI는 local_resource_status·resource_timeline으로 같은 기록을 조회합니다.</p>
+      </div>
+      <details class="card" id="media-panel">
+        <summary><b>이미지·음성 생성</b></summary>
+        <h3>ComfyUI API 워크플로 실행</h3>
+        <p class="hint">ComfyUI에서 “API 형식으로 저장”한 JSON을 실행합니다. 커스텀 노드가 없으면 누락 클래스 이름을 정확히 표시합니다. 파이프라인 JSON에서는 <code>comfy-workflow</code> 단계로 같은 실행을 저장할 수 있습니다.</p>
+        <div class="row"><input id="local-comfy-workflow" placeholder="워크플로 JSON 경로" /><button id="local-comfy-pick" class="small">찾아보기</button></div>
+        <label>노드 입력 덮어쓰기 JSON</label>
+        <textarea id="local-comfy-inputs" rows="3" placeholder='{"6":{"text":"이미지를 분석해 설명"}}'></textarea>
+        <button id="local-comfy-run" class="small primary">ComfyUI 워크플로 실행</button>
+        <pre id="local-comfy-output" class="output small"></pre>
+        <h3>VoiceStudio 음성</h3>
+        <p>이 PC에서 별도로 실행한 VoiceStudio에 연결합니다. 첫 합성에서 백엔드가 모델을 다운로드할 수 있습니다.</p>
+        <button id="media-discover">연결 및 도구 확인</button>
+        <span id="media-tools" class="hint" aria-live="polite"></span>
+        <label>작업 <select id="media-kind"><option value="speak">프로필로 대본 읽기</option><option value="clone">샘플로 새 프로필 만들기</option></select></label>
+        <label><span id="media-profile-label">음성 프로필 ID</span> <input id="media-profile" maxlength="120"></label>
+        <label id="media-text-label">대본 <textarea id="media-text" rows="3" maxlength="1600"></textarea></label>
+        <label>사용 용도 <input id="media-purpose" maxlength="180"></label>
+        <label>음성 사용 권한 <select id="media-authority"><option value="">선택하세요</option><option value="own">내 목소리</option><option value="authorized">화자가 이 용도에 동의함</option></select></label>
+        <button id="media-voice-run">수신처와 요청 확인</button>
+        <pre id="media-voice-output" class="output small" aria-live="polite"></pre>
+        <h3>공급자별 최근 요청</h3>
+        <table class="table"><thead><tr><th>공급자</th><th>결과</th><th>호출 시간</th><th>비용</th></tr></thead><tbody>
+          <tr><td>ComfyUI · 이미지</td><td id="media-image-id">대기</td><td id="media-image-time">—</td><td>미측정</td></tr>
+          <tr><td>VoiceStudio · 음성</td><td id="media-voice-id">대기</td><td id="media-voice-time">—</td><td>미측정</td></tr>
+          <tr><td>Gemini</td><td>이미지 가이드 · 음성 실행 미연결</td><td>—</td><td>—</td></tr>
+          <tr><td>OpenAI</td><td>이미지 하네스 가이드 · 음성 실행 미연결</td><td>—</td><td>—</td></tr>
+        </tbody></table>
+      </details>
+      <div class="grid2">
+        <div class="card">
+          <h2>LM Studio</h2>
+          <div id="lm-status" class="statusline">확인 중...</div>
+          <table id="lm-models" class="table"></table>
+        </div>
+        <div class="card">
+          <h2>MCP 허브 서버</h2>
+          <div id="hub-status" class="statusline">확인 중...</div>
+          <div class="hint" id="hub-url"></div>
+          <h2 style="margin-top:16px">AI 도구 등록 상태</h2>
+          <table id="target-status" class="table"></table>
+          <h2 style="margin-top:16px">Gemini 위임 (agy)</h2>
+          <div id="dash-agy-status" class="statusline">확인 중...</div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>다운스트림 MCP 서버 (Unity / Unreal / 제3 툴)</h2>
+        <table id="dash-downstream" class="table"></table>
+      </div>
+      <div class="card">
+        <h2>자동 작업 (백그라운드)</h2>
+        <p class="hint">앱이 켜져 있는 동안(트레이 포함) <b>안전한 작업만</b> 알아서 처리합니다 — 허브 자체 데이터 정리와 로컬 AI 작업만 수행하며, 셸 명령·빌드·외부 도구 호출은 절대 자동 실행하지 않습니다.</p>
+        <label class="row"><input type="checkbox" id="auto-enabled" /> <b>자동 작업 켜기</b></label>
+        <div class="row" style="flex-wrap:wrap; gap:12px">
+          <label class="row"><input type="checkbox" id="auto-job-mem" checked /> 중복 메모리 정리 (6시간)</label>
+          <label class="row"><input type="checkbox" id="auto-job-pipe" checked /> 안전 파이프라인 자동 실행 (파이프라인별 '자동' 표시)</label>
+        </div>
+        <div class="row">
+          <button id="auto-run-now" class="small">지금 한번 실행</button>
+          <span id="auto-last" class="hint"></span>
+        </div>
+        <div id="auto-activity" class="hint" style="margin-top:8px"></div>
+      </div>
+      <div class="card">
+        <h2>버전 &amp; 컴퓨터 간 공유</h2>
+        <div id="update-status" class="statusline">확인 중...</div>
+        <div id="update-notes" class="hint"></div>
+        <div id="update-sync-status" class="hint" role="status"></div>
+        <div class="row">
+          <button id="update-check" class="small">업데이트 확인</button>
+          <button id="update-sync" class="small primary" hidden>앱·설치본 동기화</button>
+          <button id="update-enroll" class="small primary" hidden>자동 갱신 켜기</button>
+          <button id="update-install" class="small primary" style="display:none">지금 적용하고 재시작</button>
+        </div>
+        <h3 style="margin-top:16px">공유 폴더</h3>
+        <p class="hint">설정·메모리·게임 프로젝트·파이프라인을 Google Drive <b>내 드라이브</b>를 통해 다른 컴퓨터와 공유합니다. 앱은 항상 로컬 데이터로 동작하고 공유는 백그라운드에서만 이뤄지므로, Drive가 느리거나 끊겨도 앱은 멈추지 않습니다. <b>한쪽에서 지운 파일이 다른 쪽에서 지워지지는 않습니다.</b></p>
+        <div id="share-status" class="statusline">-</div>
+        <div class="row">
+          <button id="share-sync" class="small">지금 동기화</button>
+          <span class="hint" id="share-last"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 디버깅 ============ -->
+    <section id="tab-debugging" class="tab">
+      <div class="card">
+        <h2>원인 프로세스 <span class="hint">자원 기록의 진단마다 점유율 순위 · 페이징은 프로세스별 하드 폴트 기준</span></h2>
+        <div class="res-controls"><label class="row">기간 <select id="dbg-window"><option value="600">10분</option><option value="3600">1시간</option><option value="86400">24시간</option></select></label>
+          <button id="dbg-refresh" class="small">새로 고침</button></div>
+        <table id="dbg-culprits" class="table"></table>
+        <button id="dbg-rsi-load" class="small">RSI 실행 진단</button>
+        <div id="dbg-rsi-runs" aria-live="polite"></div>
+      </div>
+      <div class="card">
+        <h2>렌더링 병목 <span class="hint">스레드 이름별 CPU + 프로세스 GPU 엔진 · 관리자 권한 없음 · 프레임 시간은 PresentMon(설치 + Performance Log Users 그룹)</span></h2>
+        <div class="row">
+          <label class="row">PID <input id="dbg-render-pid" type="number" min="1" list="dbg-pids" placeholder="비우면 GPU를 가장 많이 쓰는 프로세스" style="width:260px" /></label>
+          <label class="row">측정 <select id="dbg-render-seconds"><option value="10">10초</option><option value="15" selected>15초</option><option value="30">30초</option></select></label>
+          <button id="dbg-render-start" class="small primary">측정 시작</button>
+          <span id="dbg-render-state" class="hint" aria-live="polite"></span>
+        </div>
+        <div id="dbg-render-verdict" class="statusline"></div>
+        <table id="dbg-render-threads" class="table"></table>
+        <ul id="dbg-render-events" class="res-findings"></ul>
+      </div>
+      <div class="card">
+        <h2>프레임 캡처 분석 <span class="hint">.rdc 리플레이로 GPU 시간을 측정하거나 RenderDoc XML에서 기록된 API 호출을 확인합니다.</span></h2>
+        <div class="row">
+          <label class="row">캡처 <input id="dbg-capture-path" type="text" placeholder="…\Saved\…\*.rdc" style="width:420px" /></label>
+          <button id="dbg-capture-pick" class="small">찾아보기</button>
+          <button id="dbg-capture-start" class="small primary">분석</button>
+          <span id="dbg-capture-state" class="hint" aria-live="polite"></span>
+        </div>
+        <div id="dbg-capture-summary" class="statusline"></div>
+        <table id="dbg-capture-passes" class="table"></table>
+        <table id="dbg-capture-draws" class="table"></table>
+        <p class="hint">캡처는 직접 만듭니다 — Unreal: RenderDoc 플러그인의 뷰포트 캡처 버튼 또는 콘솔 <code>renderdoc.CaptureFrame</code>, Unity: Game 뷰의 RenderDoc 버튼. Hub는 프로그램을 실행하거나 주입하지 않고 만든 캡처만 읽습니다. 캡처를 만든 RenderDoc 버전이 rdc의 모듈 버전보다 새로우면 열리지 않을 수 있습니다.</p>
+      </div>
+      <div class="card">
+        <h2>프로세스 상세 <span class="hint">PID는 대시보드 프로세스 표에서 고르거나 칸의 제안 목록에서 · 하드웨어 점유 · 바쁜 스레드 · 메모리 맵 파일과 RAM으로 읽혀 들어오는 속도</span></h2>
+        <div class="row">
+          <label class="row">PID <input id="dbg-inspect-pid" type="number" min="1" list="dbg-pids" style="width:120px" /></label>
+          <label class="row">측정 <select id="dbg-inspect-seconds"><option value="5" selected>5초</option><option value="10">10초</option><option value="20">20초</option></select></label>
+          <button id="dbg-inspect-start" class="small primary">조사</button>
+          <span id="dbg-inspect-state" class="hint" aria-live="polite"></span>
+          <datalist id="dbg-pids"></datalist>
+        </div>
+        <div id="dbg-inspect-summary" class="statusline"></div>
+        <table id="dbg-inspect-files" class="table"></table>
+        <table id="dbg-inspect-threads" class="table"></table>
+        <p class="hint">상위 AI는 MCP render_monitor · process_inspect · frame_capture_analyze로 같은 측정을 요청합니다. 사용자 폴더 경로는 %USERPROFILE%로 가려 보여 줍니다.</p>
+      </div>
+    </section>
+
+    <!-- ============ 게임 프로젝트 ============ -->
+    <section id="tab-projects" class="tab">
+      <div class="grid2">
+        <div class="card">
+          <h2>프로젝트</h2>
+          <p class="hint">Unity와 Unreal 프로젝트는 엔진 버전을 찾습니다. Node.js는 선언된 빌드·시험 명령을 표시합니다. Visual Studio는 .sln 또는 .slnx가 있는 폴더를 선택하세요.</p>
+          <div class="row">
+            <button id="proj-add" class="primary">폴더 선택하여 추가</button>
+            <button id="proj-reload" class="small">새로고침</button>
+          </div>
+          <div id="proj-res-embed" class="statusline" aria-live="polite"></div>
+          <div id="proj-list"></div>
+        </div>
+        <div class="card">
+          <h2>감지된 도구</h2>
+          <p class="hint">이 컴퓨터에서 자동 감지된 엔진/도구입니다. 컴퓨터마다 실행 시 다시 감지됩니다.</p>
+          <div class="row"><button id="proj-tools-refresh" class="small">다시 감지</button></div>
+          <div id="proj-tools"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 파이프라인 ============ -->
+    <section id="tab-pipelines" class="tab">
+
+
+<p class="hint">API 연결(키·허용 경로·명세)은 <b>설정 › 외부 연결</b>에서 등록합니다. 그래프의 api-request 단계는 연결 ID만 씁니다.</p>
+
+<div class="pg-workspace">
+<h3>위임 흐름 (실시간)</h3><div id="flow-map" class="flow-wrap"></div><p id="flow-summary" class="hint">측정 대기</p>
+</div>
+
+<div id="pg-workspace" class="pg-workspace">
+
+<div id="game-pipeline-controls" class="card"><h3>게임개발 루프</h3><p>기획 → 리소스 → 구현 → 플레이 → 검토. 승인 지점과 개선 횟수 상한을 포함합니다.</p><div class="row"><label for="game-engine">엔진</label><select id="game-engine"><option>Unity</option><option>Unreal</option><option>기타</option></select><button id="game-template-load">게임 루프 초안 불러오기</button><label for="game-step-type">실행 연결</label><select id="game-step-type"><option value="mcp-tool">엔진 MCP</option><option value="comfy-workflow">ComfyUI 리소스</option><option value="offload">AI 변경안</option><option value="herdr-agent">Herdr 에이전트</option><option value="unity-batch">Unity 배치 메서드</option><option value="uat">Unreal UAT</option></select></div><p class="hint">기본 초안은 사람이 확인하고 재개하는 검토 노드입니다. 필요한 노드를 실행 노드로 바꿔 연결할 수 있습니다.</p>
+<div class="row"><label for="game-edge-kind">선택 노드의 연결</label><select id="game-edge-kind"><option value="next">다음</option><option value="onTrue">참</option><option value="onFalse">거짓</option><option value="onError">실패</option></select><select id="game-edge-target" aria-label="연결할 대상 노드"></select><button id="game-edge-connect">연결</button></div><div id="game-node-inspector"></div></div>
+
+<h3>상태 그래프 편집기</h3><p>상태 → 조건 분기 → 반복 → 검토 → 재개. 노드를 눌러 속성창에서 연결을 편집하고, 끌어서 배치합니다. 실행 중에는 현재 노드와 방문 횟수가 표시됩니다.</p>
+<div class="pg-header"><input id="pg-name" aria-label="그래프 이름" placeholder="그래프 이름"><input id="pg-entry" aria-label="시작 노드" placeholder="시작 노드"><label>전이 상한<input id="pg-limit" type="number" min="1" max="128"></label><label>방문 상한<input id="pg-visits" type="number" min="1" max="32"></label></div>
+<label>초기 상태 (JSON 객체)</label><textarea id="pg-state" class="pg-json" rows="3"></textarea>
+<div class="pg-actions"><button id="pg-example">3회 반복 예시</button><button id="pg-api-example">API 제출·상태 조회 예시</button><select id="pg-add-kind" aria-label="추가할 노드 종류"><option value="state">상태</option><option value="condition">조건</option><option value="offload">offload 단계</option><option value="review">검토</option><option value="end">종료</option></select><button id="pg-add">노드 추가</button><button id="pg-validate">검증</button><button id="pg-simulate">모의 실행</button></div>
+<div class="pg-columns"><div id="pg-map" class="pg-map" aria-label="노드와 연결"></div><div id="pg-inspector" class="pg-inspector"></div></div>
+<label class="row"><input id="pg-execute-confirm" type="checkbox">실행 단계의 명령·도구·모델 호출을 확인했습니다.</label>
+<div class="pg-actions"><button id="pg-save" class="primary">그래프 저장</button><button id="pg-run">저장 후 실행</button><button id="pg-export">JSON 내보내기</button><button id="pg-import">JSON 가져오기</button></div>
+<details><summary>정의 JSON 가져오기·내보내기</summary><textarea id="pg-json" class="pg-json" rows="12"></textarea></details>
+<pre id="pg-output" class="pg-output">모의 실행은 외부 작업 없이 분기·반복을 확인합니다. 실행 단계 결과는 성공으로 가정합니다. API 예시는 id/status 가짜 응답을 사용하며 실제 서비스 형식을 검증하지 않습니다.</pre>
+<div id="pg-review" hidden><h4>실행 상태 검토</h4><div id="pg-review-id"></div><pre id="pg-review-trace" class="pg-output"></pre><div id="pg-review-res" class="statusline" aria-live="polite"></div><label>재개할 상태 (전체 객체)</label><textarea id="pg-resume-state" class="pg-json" rows="8"></textarea><button id="pg-resume" class="primary">이 상태로 다음 노드부터 재개</button><p>이미 완료한 단계는 재실행하지 않습니다. 이후 단계는 실제 실행됩니다.</p></div>
+</div>
+
+      <div class="grid2">
+        <div class="card">
+          <h2>빌드/자동화 파이프라인</h2>
+          <p class="hint">반복 작업(빌드, 검사, 요약 등)을 스텝으로 묶어 버튼 하나로 자동 실행합니다.</p>
+          <div id="pipe-list"></div>
+          <h3>간단 만들기</h3>
+          <label>템플릿</label>
+          <select id="pb-template">
+            <option value="shell">명령 실행 — 아무 셸 명령이나 순서대로 실행</option>
+            <option value="unity-build">Unity 배치 실행 — 에디터 메서드 호출 (빌드 스크립트 등)</option>
+            <option value="ue-cook">Unreal 빌드/쿡 — BuildCookRun (Win64)</option>
+            <option value="ai-task">AI 작업 — 로컬 모델에게 작업 지시</option>
+          </select>
+          <label>이름</label>
+          <input id="pb-name" placeholder="예: 야간 빌드" />
+          <div id="pb-fields"></div>
+          <label class="row"><input type="checkbox" id="pb-summary" checked /> 완료 후 결과를 AI가 한국어로 요약</label>
+          <p class="hint">프로젝트 연결은 오른쪽 '실행'의 프로젝트 선택을 따릅니다.</p>
+          <button id="pb-create" class="primary">파이프라인 만들기</button>
+          <div class="dev-only">
+            <h3>파이프라인 편집 (JSON) — 개발자</h3>
+            <p class="hint">스텝: shell · msbuild · unity-batch · uat · ai · mcp-tool · source-index · finetune-gen · llama-chat · comfy-workflow<br />
+            변수: ${project.path} ${project.name} ${project.editorPath} ${project.slnPath} ${project.uprojectPath} ${project.engineRoot} ${run.id} ${env.이름}</p>
+            <textarea id="pipe-json" rows="12" spellcheck="false" placeholder='{"name": "예시", "projectId": "", "steps": [{"type": "shell", "name": "인사", "command": "echo hello"}]}'></textarea>
+            <div class="row">
+              <button id="pipe-save" class="primary">저장</button>
+              <button id="pipe-new" class="small">새로 만들기</button>
+              <button id="pipe-example" class="small">예시 불러오기</button>
+              <button id="pipe-example-ft" class="small">UE 파인튜닝 예시</button>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h2>실행</h2>
+          <div class="row">
+            <select id="pipe-run-project"></select>
+            <button id="pipe-cancel" class="small danger" disabled>실행 취소</button>
+          </div>
+          <div id="pipe-run-meta" class="statusline">-</div>
+          <pre id="pipe-log" class="output" style="max-height:420px"></pre>
+          <h2 style="margin-top:16px">실행 이력</h2>
+          <table id="pipe-history" class="table"></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 로컬 모델 ============ -->
+    <section id="tab-delegate" class="tab">
+      <div class="card dev-only">
+        <h2>전역 사용자 프롬프트 — 개발자</h2>
+        <p class="hint">소스 Q&amp;A·렌더 분석·파이프라인 ai 단계처럼 Hub가 로컬 모델을 부를 때 항상 덧붙는 사용자 지시입니다.</p>
+        <textarea id="dg-global" rows="3" placeholder="예: 모든 코드에 한국어 주석을 달아줘"></textarea>
+        <button id="dg-global-save">저장</button>
+        <h2 style="margin-top:16px">모델 능력 등급</h2>
+        <p class="hint">high: 게임개발+프로그래밍+추론 / medium: 프로그래밍+추론 / low: 추론만</p>
+        <div id="tier-editor"></div>
+        <button id="tier-save">등급 저장</button>
+      </div>
+      <div class="card">
+        <h2>로컬 런타임 · 멀티모달 파이프라인</h2>
+        <p class="hint">런타임 설치, API 실행, 플러그인 노드, 모델 유무를 따로 검사합니다. offload는 LM Studio를 기본으로 쓰고, 이 PC에 llama.cpp GGUF를 지정해 실행 중일 때만 llama.cpp를 씁니다.</p>
+        <label class="row"><input type="checkbox" id="local-install-toggle" /> 누락 시 자동 설치/실행 버튼 표시</label>
+        <div id="local-runtime-status" class="statusline">확인 중...</div>
+        <div id="local-runtime-actions" class="row"></div>
+        <label>llama.cpp Hugging Face 모델 (시작 시 다운로드)</label>
+        <input id="local-llama-repo" value="Qwen/Qwen2.5-Coder-7B-Instruct-GGUF:Q4_K_M" />
+        <button id="goto-media-comfy">대시보드에서 이미지 워크플로 열기</button>
+      </div>
+    </section>
+    <!-- ============ MCP 연결 ============ -->
+    <section id="tab-mcp" class="tab">
+      <div class="card">
+        <h2>AI 도구에 허브 등록</h2>
+        <p class="hint">각 AI의 MCP 설정 파일에 이 허브를 등록합니다. 변경 전 자동 백업(.bak)이 생성됩니다. stdio는 AI가 허브를 직접 실행하고, HTTP는 이 앱이 켜져 있을 때 공유 허브(포트)로 연결합니다.</p>
+        <div id="mcp-http-box" class="row" style="display:none">
+          <span class="warn" id="mcp-http-text"></span>
+          <button id="mcp-http-migrate" class="small primary">전부 HTTP로 옮기기</button>
+        </div>
+        <table id="mcp-targets" class="table"></table>
+      </div>
+      <div class="card">
+        <h2>Gemini 위임 (agy)</h2>
+        <p class="hint">메인 에이전트가 MCP <code>offload_run</code>에서 작업자 <code>agy</code>를 지정한 작업만 Antigravity CLI로 보냅니다(구독 할당량 사용, 입력이 큰 작업만). 모든 등급이 Gemini 4입니다. <code>fast</code>(기본, 단순 작업)와 <code>reasoning</code>(판정·원인 추적)은 같은 모델, <code>deep</code>(설계 비교·결정)은 가장 높은 노력 단계이고 모델 이름은 <code>src/core/agy-model-tiers.json</code>에 있습니다. 로그인·모델은 실행 때 사전 점검이 확인합니다.</p>
+        <div id="mcp-agy-status" class="statusline">확인 중...</div>
+      </div>
+      <div class="card">
+        <h2>CLI 커넥터 (Unity CLI)</h2>
+        <p class="hint">명령줄 도구를 MCP 서버로 감싸 각 AI에 등록합니다. 브리지는
+        <b>로컬 디스크(<span id="conn-dir">%APPDATA%</span>)</b>에 설치된 사본을 실행합니다 —
+        동기화 폴더를 직접 가리키면 Drive가 잠깐 끊겼을 때 그 AI의 MCP 서버까지 같이 죽습니다.</p>
+        <div id="conn-migrate-box" class="row" style="display:none">
+          <span class="warn" id="conn-migrate-text"></span>
+          <button id="conn-migrate" class="small primary">앱 내장 브리지로 옮기기</button>
+        </div>
+        <table id="conn-targets" class="table"></table>
+        <div class="hint">변경 후에는 해당 AI 도구를 재시작해야 반영됩니다.</div>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <h2>다운스트림 MCP 서버 관리</h2>
+          <p class="hint">허브가 클라이언트(호스트)로 연결할 서버입니다. Unity / Unreal / 기타 MCP 서버를 추가하면 모든 AI가 허브의 downstream_call_tool로 사용할 수 있습니다.</p>
+          <div id="ds-presets"></div>
+          <div class="row">
+            <button id="ds-autofill" class="small">인증정보 자동 감지</button>
+            <span class="hint">다른 컴퓨터에서 설정한 서버의 토큰·환경변수를 이 컴퓨터의 AI 도구 설정에서 찾아 채웁니다.</span>
+          </div>
+          <table id="ds-list" class="table"></table>
+          <div class="dev-only">
+          <h3>직접 추가 — 개발자</h3>
+          <label>이름</label><input id="ds-name" placeholder="my-server" />
+          <label>유형</label>
+          <select id="ds-type"><option value="http">HTTP (URL)</option><option value="stdio">stdio (명령 실행)</option></select>
+          <label>프로토콜</label><select id="ds-protocol"><option value="auto">자동 — 2026 탐색 후 레거시 폴백</option><option value="modern">2026-07-28 고정</option><option value="legacy">2025 레거시 고정</option></select>
+          <div id="ds-http-fields">
+            <label>URL</label><input id="ds-url" placeholder="http://127.0.0.1:8080/mcp" />
+          </div>
+          <div id="ds-stdio-fields" class="hidden">
+            <label>명령</label><input id="ds-command" placeholder="C:/path/to/server.exe 또는 node" />
+            <label>인자 (한 줄에 하나)</label><textarea id="ds-args" rows="3"></textarea>
+          </div>
+          <button id="ds-add" class="primary">서버 추가</button>
+          </div>
+        </div>
+        <div class="card">
+          <h2>허브 접속 URL (다른 AI에 등록)</h2>
+          <p class="hint">아래 URL을 다른 AI 도구의 MCP 서버 설정에 붙여넣으면 이 허브의 모든 툴을 쓸 수 있습니다. 다른 컴퓨터에서 등록하려면 설정에서 'LAN에 허브 공개'를 켜세요.</p>
+          <div id="mcp-urls"></div>
+          <h2 style="margin-top:16px">제3 툴 연결용 스니펫</h2>
+          <p class="hint">다른 MCP 클라이언트(제3의 툴)에서 이 허브에 연결할 때 사용하는 설정입니다.</p>
+          <h3>stdio 방식</h3>
+          <pre id="snippet-stdio" class="output small"></pre>
+          <button data-copy="snippet-stdio">복사</button>
+          <h3>HTTP 방식 (앱 실행 중일 때)</h3>
+          <pre id="snippet-http" class="output small"></pre>
+          <button data-copy="snippet-http">복사</button>
+          <p class="hint">⚠ HTTP 스니펫에는 인증 토큰이 포함됩니다. 신뢰할 수 있는 툴에만 붙여넣으세요.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 스킬 등록 ============ -->
+    <section id="tab-skills" class="tab">
+      <div class="card" id="skill-knowledge-graph"></div>
+      <div class="grid2">
+        <div class="card">
+          <h2>스킬 설치</h2>
+          <div id="dropzone">
+            <div>📂 스킬 파일(.md)이나 폴더를 여기에 드래그 앤 드롭</div>
+            <div class="hint">GitHub URL, owner/repo 또는 npx skills add 입력도 지원합니다.</div>
+          </div>
+          <label for="skill-source">스킬 경로 또는 설치 프롬프트</label>
+          <p class="hint" id="skill-selected">그래프에서 스킬을 선택하거나 새 소스를 저장소에 추가하세요.</p>
+          <label>저장소 분류 <input id="skill-category" value="development" placeholder="development" /></label>
+          <div class="row"><button id="skill-add-repository" class="small">변경 미리보기</button><button id="skill-update-repository" class="small">GitHub에서 저장소 갱신</button></div>
+          <input id="skill-source" placeholder="C:\path\to\skill  또는  https://github.com/owner/repo" />
+          <div class="row">
+            <button id="skill-browse">파일/폴더 선택...</button>
+          </div>
+          <h3>설치 대상 AI</h3>
+          <div id="skill-targets" class="checklist"></div>
+          <button id="skill-install" class="primary">저장소 스킬을 선택한 AI에 등록</button>
+          <pre id="skill-result" class="output small"></pre>
+        </div>
+        <div class="card">
+          <h2>설치된 스킬</h2>
+          <button id="skill-refresh">새로고침</button>
+          <div id="skill-installed"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-learning" class="tab">
+      <details class="card" id="practice-panel">
+        <summary><b>예측·관찰 연습</b></summary>
+        <p>결과를 보기 전에 예상하는 동작을 적고, 나중에 실제 관찰과 비교하세요. 직접 저장한 내용만 이 PC의 Hub 프로필에 남습니다.</p>
+        <label>연습 출처 <select id="practice-source">
+          <option value="custom">직접 쓴 질문</option><option value="s4">S4 학습 그래프 항목</option>
+          <option value="P1">W13-C01 · P1</option><option value="P2">W13-C01 · P2</option>
+          <option value="P3">W13-C01 · P3</option><option value="P4">W13-C01 · P4</option><option value="P5">W13-C01 · P5</option>
+        </select></label>
+        <div id="practice-s4" hidden>
+          <label>기존 S4 세션 ID <input id="practice-session" placeholder="2026-11-11a"></label>
+          <label>기존 그래프 노드 ID <input id="practice-node"></label>
+          <label>명제·사슬 ID (쉼표 구분) <input id="practice-items" placeholder="C001, A001"></label>
+        </div>
+        <label>질문 <textarea id="practice-q" rows="2" maxlength="1000"></textarea></label>
+        <label>내 예측 <textarea id="practice-p" rows="2" maxlength="1000"></textarea></label>
+        <button id="practice-start">예측 저장</button>
+        <hr>
+        <label>이어서 기록할 연습 <select id="practice-current"></select></label>
+        <p id="practice-context" class="hint"></p>
+        <div id="practice-observe" hidden>
+          <label>실제 관찰 <textarea id="practice-o" rows="2" maxlength="1000"></textarea></label>
+          <label>근거 위치 <input id="practice-e" maxlength="500" placeholder="예: 테스트 이름, 캡처 ID, 소스 파일과 줄"></label>
+          <label>예측과 대조 <select id="practice-match"><option value="">판정 보류</option><option value="yes">일치</option><option value="no">불일치</option></select></label>
+          <button id="practice-save-obs">관찰 저장</button>
+        </div>
+        <div id="practice-explain" hidden>
+          <label>왜 그렇게 동작했나요? <textarea id="practice-x" rows="2" maxlength="1000"></textarea></label>
+          <label>다음에 확인할 조건 <input id="practice-next" maxlength="500"></label>
+          <button id="practice-finish">설명과 다음 확인 저장</button>
+        </div>
+        <p id="practice-msg" aria-live="polite"></p>
+        <details id="practice-undo" hidden><summary>이 연습 철회</summary>
+          <label>정정 사유 <input id="practice-reason" maxlength="500"></label>
+          <button id="practice-retract">기록에 사유를 남기고 집계에서 제외</button>
+        </details>
+        <h3>주간 기록</h3>
+        <label>조회할 주의 날짜 <input id="practice-date" type="date"></label>
+        <p id="practice-week" aria-live="polite"></p>
+        <button id="practice-raw">이 주의 원자료 보기</button><button id="practice-s4-export">이 주에 관찰한 S4 attempts.jsonl 보기</button>
+        <button id="practice-w13-export">이 주의 W13 카드 대조표 보기</button>
+        <pre id="practice-data" class="output small"></pre>
+      </details>
+      <div class="card">
+        <h2>소스에 대해 질문하기</h2>
+        <p class="hint">인덱싱된 소스코드(예: 언리얼 엔진)에서 관련 코드를 찾아 로컬 AI가 근거와 함께 한국어로 설명합니다. 엔진 내부 구조를 공부할 때 쓰세요. 전부 로컬에서 처리됩니다.</p>
+        <div class="row">
+          <select id="learn-index" aria-label="학습할 소스 인덱스" style="flex:0 0 220px"></select>
+          <input id="learn-q" aria-label="소스에 대한 질문" style="flex:1" placeholder="예: 캐릭터 이동은 어떻게 복제(replication)되나요?" />
+          <button id="learn-ask" class="primary">질문</button>
+        </div>
+        <label class="row"><input type="checkbox" id="learn-save" /> 답변을 학습 노트로 메모리에 저장</label>
+        <div id="learn-meta" class="hint"></div>
+        <pre id="learn-out" class="output" style="max-height:380px"></pre>
+        <div class="row">
+          <button id="learn-manage-index" class="small">소스 인덱스 관리</button>
+          <button id="learn-open-evidence" class="small">분석 근거로 단계별 연습</button>
+        </div>
+      </div>
+      <div class="card" data-feature="memory">
+        <h2>저장된 학습 노트</h2>
+        <p class="hint">최근 로컬 노트 50개에서 소스 질문, 심층 분석, 렌더링 분석으로 저장한 답변을 찾습니다.</p>
+        <button id="learn-read-notes" class="small">학습 노트 보기</button>
+        <div id="learn-notes" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- ============ 소스 분석 ============ -->
+    <section id="tab-source" class="tab">
+      <div class="card" id="idx-cloud-panel">
+        <h2>소스 분석</h2>
+        <p class="hint">폴더와 질문을 입력하고 작업자가 받을 발췌를 확인하세요. 기존 인덱스에는 <button type="button" class="small" id="idx-open-learning">학습 탭에서 질문</button>할 수 있습니다.</p>
+        <label for="idx-root">소스 루트 경로</label>
+        <div class="row">
+          <input id="idx-root" placeholder="C:\Program Files\Epic Games\UE_5.7\Engine\Source\Runtime" />
+          <button id="idx-pick" class="small">찾아보기</button>
+        </div>
+        <label for="idx-preset">파일 유형</label>
+        <select id="idx-preset"></select>
+        <label for="idx-exts">확장자 (쉼표 구분)</label>
+        <input id="idx-exts" value=".h" />
+        <label><input id="idx-local-only" type="checkbox" /> 민감 자료 단순 처리 · 이 PC의 로컬 모델만 사용</label>
+        <label for="idx-cloud-worker">실행 대상 (로그인·사용 한도는 실행 시 확인)</label>
+        <select id="idx-cloud-worker"></select>
+        <label for="idx-cloud-question">분석 질문</label>
+        <textarea id="idx-cloud-question" maxlength="4000" placeholder="예: 입력 처리에서 상태가 변경되는 흐름과 오류 가능성을 설명해 줘."></textarea>
+        <label for="idx-cloud-paths">분석할 파일 (루트 기준 상대 경로, 줄마다 하나, 최대 8개)</label>
+        <textarea id="idx-cloud-paths" placeholder="비워 두면 위 확장자·범위에서 질문의 파일명과 가까운 후보 최대 8개를 선택합니다."></textarea>
+        <button id="idx-cloud-preview">전송 내용 미리보기</button>
+        <div id="idx-cloud-scope" class="hint"></div>
+        <pre id="idx-cloud-text"></pre>
+        <label><input id="idx-cloud-consent" type="checkbox" /> 표시된 수신 작업자에게 위 질문과 발췌를 보내는 데 동의합니다.</label>
+        <button id="idx-cloud-start" disabled>선택한 작업자에서 분석</button>
+        <button id="idx-cloud-cancel" disabled>분석 취소</button>
+        <div id="idx-cloud-state" class="hint"></div>
+        <pre id="idx-cloud-answer"></pre>
+      </div>
+      <div class="card" id="source-knowledge-graph"></div>
+      <div class="card" data-feature="engine-source">
+        <h2>엔진 심볼 맵 — 어디에 무엇이 있나</h2>
+        <p class="hint">엔진 소스 트리를 정적으로 훑어 <b>클래스·구조체·인터페이스·enum의 좌표(file:line)와 상속 관계</b>를 만듭니다. 임베딩을 쓰지 않아 <b>수 초</b>면 끝나고 AI도 필요 없습니다 (실측: 1st-party 헤더 18,665개 → 심볼 39,002개 / 약 7초). 만들어 두면 Claude·Gemini 등 외부 AI가 <code>symbol_find</code> · <code>symbol_hierarchy</code> MCP 툴로 이 엔진의 실제 좌표를 조회합니다.</p>
+        <div id="sym-suggest"></div>
+        <div class="row">
+          <input id="sym-name" placeholder="맵 이름 (예: ue58-source)" style="flex:0 0 220px" />
+          <input id="sym-root" placeholder="엔진 소스 경로 (…\Engine\Source)" style="flex:1" />
+          <button id="sym-pick" class="small">찾아보기</button>
+          <button id="sym-scan" class="small primary">심볼 스캔</button>
+        </div>
+        <label>해설 문서 경로 <span class="hint">— 선택. 마크다운 트리를 함께 훑어 "이 심볼을 다루는 해설"을 이어 줍니다. 여러 개면 줄바꿈으로 구분.</span></label>
+        <textarea id="sym-notes" rows="2" placeholder="예: C:\Users\me\Documents\GitHub\unreal_source_explained"></textarea>
+        <div id="sym-list" class="hint"></div>
+        <div class="row" style="margin-top:8px">
+          <select id="sym-map" style="flex:0 0 220px"></select>
+          <input id="sym-query" placeholder="심볼 이름 (예: FSceneRenderer, UCharacterMovementComponent, Nanite)" style="flex:1" />
+          <button id="sym-find" class="small">검색</button>
+          <button id="sym-tree" class="small primary">상속 계층</button>
+          <button id="sym-scope" class="small">이 영역만 인덱싱</button>
+        </div>
+        <p class="hint">💡 '이 영역만 인덱싱'은 검색에 걸린 심볼이 모인 디렉터리만 골라 아래 '소스 인덱스 만들기'에 채워 넣습니다 — 엔진 전체 임베딩은 3.4시간이지만 좁힌 영역은 수 분이면 끝나고, 그 뒤 '학습 Q&A'가 실제 코드 발췌를 근거로 답합니다.</p>
+        <div id="sym-meta" class="hint"></div>
+        <div id="sym-scope-list"></div>
+        <pre id="sym-out" class="output" style="max-height:400px"></pre>
+      </div>
+      <div class="card" data-feature="engine-source">
+        <h2>심층 분석 — 외부 AI (3계층)</h2>
+        <p class="hint">심볼 좌표·상속 계층·해설(1계층)과 코드 발췌(2계층)를 묶은 <b>브리핑</b>을 만들어, 외부 AI(Antigravity 등) 또는 로컬 모델에게 설계 의도·호출 흐름 수준의 분석을 받습니다. <b>기본은 좌표·구조만 보내고</b>, 코드 발췌는 체크했을 때만 들어갑니다. 보내기 전 토큰·사용자 경로는 자동 마스킹됩니다.</p>
+        <div class="row">
+          <select id="dd-map" style="flex:0 0 180px"></select>
+          <select id="dd-index" style="flex:0 0 180px"></select>
+          <input id="dd-topic" placeholder="주제 (예: Lumen, UCharacterMovementComponent)" style="flex:1" />
+        </div>
+        <input id="dd-question" placeholder="질문 (선택 — 예: Surface Cache 갱신 흐름의 설계 의도는?)" />
+        <div class="row">
+          <select id="dd-reviewer" style="flex:0 0 260px"></select>
+          <label class="row" style="flex:1"><input type="checkbox" id="dd-source" /> 코드 발췌 포함 (외부 AI면 코드가 전송됩니다)</label>
+        </div>
+        <div class="row">
+          <button id="dd-preview" class="small">보낼 내용 확인</button>
+          <button id="dd-run" class="small primary">분석 실행</button>
+          <label class="row"><input type="checkbox" id="dd-save" /> 결과를 학습 노트로 저장</label>
+        </div>
+        <div id="dd-meta" class="hint"></div>
+        <pre id="dd-out" class="output" style="max-height:420px"></pre>
+      </div>
+      <div class="card" data-feature="engine-source">
+        <h2>렌더링 파이프라인 분석 (UE)</h2>
+        <p class="hint">렌더러 소스를 스캔해 RDG 패스·셰이더·GPU 스탯·드로우 이벤트·렌더러 함수의 지도를 만들고(수 초, AI 불필요), 특정 기능이 한 프레임에서 어떻게 흐르는지 로컬 AI가 실제 코드 발췌와 file:line 인용으로 설명합니다.</p>
+        <div id="rp-suggest"></div>
+        <div class="row">
+          <input id="rp-name" placeholder="스캔 이름 (예: ue58-renderer)" style="flex:0 0 220px" />
+          <input id="rp-root" placeholder="렌더러 소스 경로 (임의 C++ 트리도 가능)" style="flex:1" />
+          <button id="rp-scan" class="small primary">구조 스캔</button>
+        </div>
+        <div id="rp-list" class="hint"></div>
+        <div class="row" style="margin-top:8px">
+          <select id="rp-map" style="flex:0 0 220px"></select>
+          <input id="rp-topic" placeholder="주제 (예: BasePass, Shadow, Lumen, PostProcess, Nanite)" style="flex:1" />
+          <button id="rp-find" class="small">지도 검색</button>
+          <button id="rp-analyze" class="small primary">흐름 분석 (AI)</button>
+        </div>
+        <label class="row"><input type="checkbox" id="rp-save" /> 분석 결과를 학습 노트로 메모리에 저장</label>
+        <p class="hint">💡 '지도 검색'은 즉시 결과가 나옵니다. 'AI 흐름 분석'은 모델의 컨텍스트 길이에 따라 수십 초~수 분 걸립니다 — LM Studio에서 컨텍스트를 8K 이상으로 올려 모델을 로드하면 훨씬 빨라집니다.</p>
+        <div id="rp-meta" class="hint"></div>
+        <pre id="rp-out" class="output" style="max-height:400px"></pre>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <h2>소스 인덱스 만들기 (UE / C++)</h2>
+          <p class="hint">소스 트리를 로컬 임베딩 모델로 인덱싱합니다. 모든 처리는 이 PC 안에서만 이루어지며 외부 전송이 없습니다. 인덱싱 후 Claude 등에서 source_search / ue_class_info 툴로 검색할 수 있습니다.</p>
+          <div id="idx-ue-detect" data-feature="engine-source"></div>
+          <label>인덱스 이름</label>
+          <input id="idx-name" placeholder="ue58-runtime" />
+          <p class="hint">같은 이름으로 다시 인덱싱하면 <b>바뀐 파일만</b> 다시 임베딩합니다(증분 재색인). 범위나 루트를 바꾸면 전체를 다시 만듭니다.</p>
+          <button id="idx-build" class="primary">인덱싱 시작</button>
+          <button id="idx-cancel" disabled>인덱싱 취소</button>
+          <div id="idx-progress" class="hint"></div>
+          <details><summary>최근 작업 상세 진단</summary><pre id="idx-last-diagnostic"></pre></details>
+          <details><summary>소스 분석 진단 로그 (최근 200건)</summary>
+            <button id="idx-log-refresh" class="small">새로고침</button>
+            <button id="idx-log-copy" class="small">로그 복사</button>
+            <pre id="idx-diagnostics"></pre>
+          </details>
+          <h3>보유 인덱스</h3>
+          <table id="idx-list" class="table"></table>
+        </div>
+        <div class="card">
+          <h2>인덱스 검색 테스트</h2>
+          <label>인덱스</label>
+          <select id="q-index"></select>
+          <label>검색어</label>
+          <input id="q-text" placeholder="예: how character movement replication works" />
+          <button id="q-run" class="primary">의미 검색</button>
+          <label style="margin-top:12px" data-feature="engine-source">UE 클래스 조회</label>
+          <div class="row" data-feature="engine-source">
+            <input id="q-class" placeholder="AActor, UActorComponent..." />
+            <button id="q-class-run" class="small">조회</button>
+          </div>
+          <pre id="q-out" class="output"></pre>
+        </div>
+      </div>
+      <div class="card dev-only" data-feature="engine-source">
+        <h2>파인튜닝 데이터셋 생성 — 개발자</h2>
+        <p class="hint">인덱스에서 코드를 샘플링해 로컬 모델이 질문/답변 쌍(Alpaca JSONL)을 만듭니다. 실제 학습은 Unsloth 등 외부 도구로 하며, 생성 폴더의 GUIDE.md에 절차가 있습니다. 생성된 모델(GGUF)을 LM Studio에 넣으면 허브에서 바로 사용됩니다.</p>
+        <div class="row">
+          <div style="flex:1">
+            <label>인덱스</label>
+            <select id="ft-index"></select>
+          </div>
+          <div style="flex:1">
+            <label>생성할 쌍 개수</label>
+            <input id="ft-count" type="number" value="100" min="1" max="2000" />
+          </div>
+          <div style="flex:2">
+            <label>생성 모델 (비우면 자동)</label>
+            <input id="ft-model" placeholder="qwen/qwen2.5-coder-14b" />
+          </div>
+        </div>
+        <div class="row">
+          <button id="ft-run" class="primary">데이터셋 생성 시작</button>
+          <button id="ft-stop" class="danger">중지</button>
+          <button id="ft-open">생성 폴더 열기</button>
+        </div>
+        <div id="ft-progress" class="hint"></div>
+        <table id="ft-list" class="table"></table>
+      </div>
+    </section>
+
+    <!-- ============ 메모리 ============ -->
+    <section id="tab-memory" class="tab">
+      <div class="card">
+        <h2>공유 저장소 메모리 <span class="hint">명시 연결 · 읽기 전용</span></h2>
+        <p class="hint">사용할 저장소를 직접 지정하면 메모리·문제 해결 로그·skill·문서를 검색합니다. 해당 저장소에 tools/find_context.py가 필요합니다. 기존 개인 저장소는 자동으로 찾지 않습니다. Done 큐와 후속 큐도 이 연결을 사용합니다.</p>
+        <div id="smem-status" class="statusline">-</div>
+        <div class="row">
+          <input id="smem-query" placeholder="공유 메모리·로그·skill·문서 검색 (예: 하드웨어 위임)" />
+          <button id="smem-find" class="small primary">검색</button>
+        </div>
+        <div class="row">
+          <label class="row"><input type="checkbox" id="smem-k-memory" checked /> 메모리</label>
+          <label class="row"><input type="checkbox" id="smem-k-log" checked /> 문제 해결 로그</label>
+          <label class="row"><input type="checkbox" id="smem-k-skill" checked /> skill</label>
+          <label class="row"><input type="checkbox" id="smem-k-doc" /> 문서</label>
+        </div>
+        <div id="smem-results"></div>
+        <details>
+          <summary>clone 위치 지정 (이 PC 전용)</summary>
+          <input id="smem-repo" placeholder="사용할 공유 저장소의 전체 경로 · 비워 두면 연결하지 않음" />
+          <div class="row">
+            <button id="smem-repo-apply" class="small">적용</button>
+            <button id="smem-repo-auto" class="small">연결 해제</button>
+          </div>
+        </details>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <h2>이 PC 로컬 메모리</h2>
+          <p class="hint">소스 Q&amp;A·렌더 분석·심층 분석의 학습 노트와 직접 저장한 메모입니다(공유 저장소와 별개). 여러 PC·AI가 함께 쓸 지식은 위 공유 저장소 메모리에서 관리합니다.</p>
+          <div id="mem-stats" class="statusline">-</div>
+          <h3>저장 위치</h3>
+          <p class="hint">메모리는 이 앱의 독립 로컬 폴더에 저장합니다. 자동 공유·동기화는 꺼져 있습니다. 저장 위치는 기본값을 그대로 사용할 수 있습니다.</p>
+          <div class="hint" id="mem-dir-now">-</div>
+          <input id="mem-dir" placeholder="비우면 기본값(%APPDATA%) — 권장" />
+          <div class="row">
+            <button id="mem-dir-apply" class="small primary">적용</button>
+            <button id="mem-dir-default" class="small">기본값 (권장)</button>
+          </div>
+          <h3>메모리 추가</h3>
+          <select id="mem-type">
+            <option value="fact">fact — 사실</option>
+            <option value="preference">preference — 선호/규칙</option>
+            <option value="project">project — 프로젝트 정보</option>
+            <option value="note" selected>note — 일반 노트</option>
+          </select>
+          <textarea id="mem-text" rows="3" placeholder="기억할 내용 (예: 내 게임 프로젝트는 UE5.7 기반 3인칭 액션이다)"></textarea>
+          <input id="mem-tags" placeholder="태그 (쉼표 구분, 선택)" />
+          <button id="mem-add" class="primary">저장</button>
+          <h3>검색</h3>
+          <div class="row">
+            <input id="mem-query" placeholder="의미 검색..." />
+            <button id="mem-find" class="small">검색</button>
+          </div>
+        </div>
+        <div class="card">
+          <h2>저장된 메모리</h2>
+          <div class="row">
+            <button id="mem-refresh">새로고침</button>
+            <button id="mem-consolidate">중복 정리 (유사도 통합)</button>
+          </div>
+          <div id="mem-list"></div>
+        </div>
+      </div>
+    </section>
+
+        <!-- ============ 자가개선 ============ -->
+    <section id="tab-selfimprove" class="tab">
+      <div class="card">
+        <h2>평가 3계층 <span class="hint">1 결정적 프로그램 · 2 규칙·디버깅·소스 분석 근거의 에이전트 판정 · 3 두 평가에 대한 메타 평가</span></h2>
+        <div class="row">
+          <button class="small" data-si-eval="deterministic" data-si-subject="hub-source">결정적: Hub 소스</button>
+          <button class="small" data-si-eval="deterministic" data-si-subject="shared-skills">결정적: 공유 스킬</button>
+          <select id="si-worker" aria-label="판정 작업자"><option value="">기본: Codex · 구조 요약</option><option value="local">판정: 로컬 모델</option><option value="codex">판정: Codex</option><option value="agy">판정: Antigravity</option></select>
+          <button class="small" data-si-eval="agent" data-si-subject="hub-source">에이전트 판정</button>
+          <button class="small" data-si-eval="meta">메타 평가</button>
+          <span id="si-eval-state" class="hint" aria-live="polite"></span>
+        </div>
+        <table id="si-eval" class="table"></table>
+      </div>
+      <div class="card">
+        <h2>RSI 3중 루프 <span class="hint">앱 상태 그래프로 실행 · 사람 검토 노드 필수 · 자동 반영 없음</span></h2>
+        <div class="row"><button id="si-install" class="small">루프 설치·갱신</button><button id="si-propose" class="small">제안 수집 → 검토</button><span id="si-loop-state" class="hint" aria-live="polite"></span></div>
+        <div id="si-loops"></div>
+        <button id="si-rsi-load" class="small">실행별 진단 보기</button>
+        <button class="small" data-si-eval="deterministic" data-si-subject="debug-diagnostics">디버깅 고정 회귀 평가</button>
+        <div id="si-rsi-runs" aria-live="polite"></div>
+        <h3>제안 큐 <input id="si-note" type="text" placeholder="승인·반려 메모(선택)" aria-label="승인·반려 메모" style="width:260px" /></h3>
+        <div id="si-proposals"></div>
+        <h3>원본 갱신 <span class="hint">위험이 없고 AI 검토가 "위험 없음"이면 자동 적용, 아니면 여기서 승인</span> <button id="si-upstream-check" class="small">지금 점검</button><span id="si-upstream-state" class="hint" aria-live="polite"></span></h3>
+        <div id="si-upstream"></div>
+      </div>
+      <div class="card">
+        <h2>하네스 연결 <span class="hint">Claude Code · Codex · Antigravity · Gemini CLI · Hub — 버스(bus_*)와 호환성</span></h2>
+        <div class="row"><button id="si-probe" class="small">호환성 탐침</button><span id="si-bus" class="hint"></span></div>
+        <table id="si-harness" class="table"></table>
+      </div>
+      <div class="card">
+        <h2>구조 · 캐시 · 거버너 · Obsidian</h2>
+        <div id="si-structure" class="statusline"></div>
+        <div class="row"><span id="si-cache" class="hint"></span><button id="si-gc-dry" class="small">GC 미리보기</button><button id="si-gc" class="small">GC 실행</button></div>
+        <table id="si-cache-keys" class="table"></table>
+        <div class="row"><span id="si-governor" class="hint"></span><button id="si-tick" class="small">거버너 한 주기</button></div>
+        <ul id="si-gaps" class="hint"></ul>
+        <div class="row"><span id="si-obsidian" class="hint"></span><button id="si-obsidian-index" class="small">Obsidian 자동 색인 지금</button></div>
+      </div>
+    </section>
+
+<!-- ============ 이력 ============ -->
+    <section id="tab-history" class="tab">
+      <div class="card">
+        <h2>활동 요약</h2>
+        <p class="hint">이 PC의 Hub가 처리한 로컬 모델 호출·offload 작업·Aider·파이프라인입니다. 기록은 PC마다 따로 저장되며, 다른 PC의 활동은 그 PC의 Hub에서 봅니다.</p>
+        <table id="act-summary" class="table"></table>
+      </div>
+      <div class="card">
+        <h2>최근 활동</h2>
+        <div class="row">
+          <select id="act-kind">
+            <option value="">전체</option>
+            <option value="delegation">위임</option>
+            <option value="offload">offload</option>
+            <option value="aider">Aider</option>
+            <option value="pipeline">파이프라인</option>
+            <option value="command">채팅 명령</option>
+          </select>
+          <button id="hist-refresh">새로고침</button>
+        </div>
+        <table id="act-table" class="table"></table>
+      </div>
+      <div class="card">
+        <h2>위임 통계 (모델별)</h2>
+        <div id="hist-summary" class="statusline">-</div>
+        <table id="hist-models" class="table"></table>
+      </div>
+    </section>
+
+    <!-- ============ 설정 ============ -->
+    <section id="tab-settings" class="tab">
+      <div class="card" style="max-width:640px">
+        <h2>Hub 업데이트</h2>
+        <label class="row"><input type="checkbox" id="set-repo-update" aria-describedby="set-repo-update-info" disabled /> <span id="set-repo-update-label">이 PC에서 Hub 자동 갱신</span></label>
+        <p class="hint" id="set-repo-update-help">켜면 Hub가 시작할 때 공유 저장소에서 새 버전을 확인하고 적용합니다. 이 PC의 같은 Windows 계정에서 여는 Hub에 공통으로 적용됩니다.</p>
+        <div class="row"><button id="set-repo-check" class="small" disabled>지금 업데이트 확인</button></div>
+        <p class="hint" id="set-repo-update-info" role="status">이 PC의 설정을 읽는 중…</p>
+      </div>
+      <div class="card" style="max-width:640px">
+        <h2>설정</h2>
+        <label>LM Studio 주소</label>
+        <input id="set-lmurl" placeholder="http://127.0.0.1:1234" />
+        <label>허브 HTTP 포트</label>
+        <input id="set-port" type="number" min="1024" max="65535" />
+        <label class="row"><input type="checkbox" id="set-auth" /> HTTP 연결에 Bearer 토큰 인증 요구 (권장)</label>
+        <label class="row"><input type="checkbox" id="set-tray" /> 창을 닫아도 트레이에서 허브 계속 실행</label>
+        <label class="row"><input type="checkbox" id="set-autostart" /> Windows 로그인 시 자동 실행 (설치 버전에서만 적용)</label>
+        <label class="row"><input type="checkbox" id="set-lite" /> 사무용 노트북 경량 모드 (이 PC만 · 저장 후 앱 다시 시작)</label>
+        <p class="hint" id="set-lite-hint"></p>
+        <details id="set-lite-box">
+          <summary>경량 모드에서 켤 기능</summary>
+          <p class="hint">같은 소스(overlay)에서 화면 단추와 MCP 도구만 거릅니다 — 데스크톱이 업데이트되면 노트북도 같은 판을 받습니다. 설정은 항상 보입니다.</p>
+          <div id="set-lite-features" class="checklist"></div>
+        </details>
+        <label class="row"><input type="checkbox" id="set-lan" /> LAN에 허브 공개 — 다른 컴퓨터의 AI가 URL로 등록 가능 (토큰 인증 강제)</label>
+        <h2 style="margin-top:20px">버전 모드</h2>
+        <label class="row"><input type="checkbox" id="set-devmode" /> 개발자 버전 사용</label>
+        <p class="hint">기본 버전(권장): 템플릿 기반의 간단한 GUI만 표시합니다.<br />
+        개발자 버전: JSON 파이프라인 편집, C++ 소스 인덱싱 고급 옵션·파인튜닝 데이터셋 생성, 전역 프롬프트/모델 등급 편집, MCP 서버 수동 추가 등 튜닝·확장 기능을 모두 노출합니다.</p>
+        <label>위임 기본 모델 (비우면 자동)</label>
+        <input id="set-defmodel" placeholder="" />
+        <label class="row"><input type="checkbox" id="set-update-check" /> Hub 실행 중 새 버전 알림 자동 확인</label>
+        <div class="row">
+          <button id="set-save" class="primary">저장 후 허브 재시작</button>
+          <button id="set-relaunch">Hub 앱 다시 시작</button>
+        </div>
+        <p class="hint">"Hub 앱 다시 시작"은 소스 업데이트(overlay)를 적용한 뒤 새 코드를 불러옵니다. 실행 중인 파이프라인·offload 작업이 있으면 거절합니다.</p>
+        <div id="set-result" class="hint"></div>
+        <h2 style="margin-top:20px">컴퓨터 간 공유 폴더</h2>
+        <p class="hint">Google Drive <b>내 드라이브</b> 안의 폴더를 권장합니다 — 두 컴퓨터에서 같은 경로로 보이고 양방향 동기화가 정상 동작합니다.<br />
+        Drive의 <b>"다른 컴퓨터"(백업) 영역은 쓰지 마세요.</b> 원본 PC의 단방향 미러라 마운트가 불안정하고, 실제로 앱이 멈추고 설정이 초기화되는 사고가 있었습니다.<br />
+        비워두면 내 드라이브를 자동으로 찾습니다.</p>
+        <label class="row"><input type="checkbox" id="set-share-enabled" /> 공유 폴더 자동 동기화 사용</label>
+        <div class="hint" id="share-dir-now">-</div>
+        <input id="share-dir" placeholder="예: G:\내 드라이브\ai-hub (비우면 자동 탐지)" />
+        <div class="row">
+          <button id="share-dir-apply" class="small primary">적용</button>
+          <button id="share-dir-pick" class="small">폴더 선택...</button>
+          <button id="share-dir-auto" class="small">자동 탐지</button>
+        </div>
+        <h2 style="margin-top:20px">경로</h2>
+        <div class="hint" id="set-paths"></div>
+      </div>
+      <!-- 외부 연결: API(ui/tabs/api-connections.js) · URL 참조 · MCP 요약(ui/tabs/external-connections.js). 등록은 이 PC에만 저장한다. -->
+      <div class="card" id="ext-connections">
+        <h2>외부 연결 <span class="hint">API · URL · MCP · Drive — 등록한 것은 AI가 MCP 도구 api_call · hub_command · url_reference_read · downstream_call_tool로 씁니다</span></h2>
+<div id="ext-hub-urls" class="pg-workspace">
+<h3>이 Hub의 로컬 주소 <span id="ext-hub-state" class="hint"></span></h3>
+<div class="row"><span class="badge">MCP (HTTP)</span><code id="ext-hub-mcp-url" style="flex:1">http://127.0.0.1:8763/mcp</code><button class="small" data-copy="ext-hub-mcp-url">URL 복사</button></div>
+<div class="row"><span class="badge">상태 확인</span><code id="ext-hub-health-url" style="flex:1">http://127.0.0.1:8763/health</code><button class="small" data-copy="ext-hub-health-url">URL 복사</button></div>
+<p id="ext-hub-auth" class="hint">MCP 주소에 붙는 클라이언트는 Bearer 토큰이 필요합니다. 토큰은 여기에 표시하거나 복사하지 않습니다 — 에이전트 작업실 › MCP 연결의 도구별 'HTTP 등록' 단추가 토큰까지 넣어 등록합니다. /health는 인증 없이 {"ok":true}만 돌려줍니다.</p>
+</div>
+<details id="api-editor" class="pg-workspace" open>
+<summary>API 연결 (Discord · GitHub · Gemini · 일반 HTTP API)</summary>
+<p>연결 주소와 키는 이 PC에만 저장합니다. 그래프는 연결 ID만 사용합니다. 키는 호출 때 인증 헤더에 넣으며 모델·정의 JSON·공유 폴더에 전달하지 않습니다.</p>
+<div id="api-list"></div>
+<label>프리셋</label><select id="api-preset"><option value="">직접 입력</option></select><p id="api-preset-hint" class="hint"></p>
+<div class="pg-header"><input id="api-id" placeholder="연결 ID: my-api" aria-label="연결 ID"><input id="api-name" placeholder="표시 이름" aria-label="표시 이름"><input id="api-origin" placeholder="https://api.example.com" aria-label="서비스 origin"></div>
+<label>인증 방식</label><select id="api-auth"><option value="bearer">Bearer</option><option value="bot">Bot (Discord 봇 토큰)</option><option value="header">API 키 헤더</option><option value="none">인증 없음</option></select>
+<label>헤더 이름 (API 키 헤더 방식)</label><input id="api-header" value="X-API-Key">
+<label>API 키 (새 연결 필수, 기존 연결은 비우면 유지)</label><input id="api-secret" type="password" autocomplete="off">
+<label>허용 경로 (한 줄에 하나, /로 시작 — 이 경로 아래만 호출합니다)</label><textarea id="api-routes" rows="3" spellcheck="false">/</textarea>
+<label>호출 상한 (파이프라인은 실행당, AI의 api_call은 최근 60초당)</label><input id="api-budget" type="number" min="1" max="32" value="8">
+<label>API 명세 주소 (선택 · OpenAPI 3 또는 Swagger 2 JSON · HTTPS · 키 없이 받습니다)</label><input id="api-spec-url" placeholder="https://example.com/openapi.json">
+<label class="row"><input id="api-allow-write" type="checkbox"> AI 쓰기 허용 — api_call의 POST·PUT·PATCH·DELETE (예: Discord 메시지 보내기). 끄면 AI는 GET만 부릅니다.</label>
+<div class="pg-actions"><button id="api-save">연결·키 암호화 저장</button><button id="api-new">새 연결</button><button id="club-start">동아리 봇 대상 확인·시작</button><button id="club-stop">동아리 봇 중지·권한 해제</button><button id="api-refresh">연결 상태 조회</button></div><p id="api-result" aria-live="polite"></p>
+<p>주소를 바꾸려면 새 연결 ID를 사용합니다. 경로·메서드·본문은 api-request 실행 단계나 AI의 api_call에서 지정합니다. 명세는 허용 경로 안의 작업만 최대 1000개로 줄여 이 PC에 두고, 받기에 실패하면 이전 목록을 유지합니다. OAuth·서명 인증·바이너리 업로드는 지원하지 않습니다.</p>
+</details>
+<details id="device-key-panel" class="pg-workspace">
+<summary>다른 PC에 Discord·Gemini 키 배정</summary>
+<p>수신 PC에서 요청 카드를 만들어 발신 PC에 전달합니다. 두 PC의 지문은 파일과 다른 경로로 확인하세요.</p>
+<div><strong>이 PC의 기기 지문</strong> <button id="device-key-show">지문 보기</button><p><code id="device-key-identity" style="overflow-wrap:anywhere"></code></p></div>
+<fieldset><legend>수신 PC에서 요청 카드 만들기</legend>
+<label for="device-key-provider">받을 서비스</label><select id="device-key-provider"><option value="discord">Discord</option><option value="gemini">Gemini API</option></select>
+<button id="device-key-request">요청 카드 저장</button></fieldset>
+<fieldset><legend>발신 PC에서 키 배정하기</legend>
+<button id="device-key-open-request">수신 PC의 요청 카드 열기</button>
+<div id="device-key-send-form" hidden>
+<p id="device-key-request-info" style="white-space:pre-line;overflow-wrap:anywhere"></p>
+<label for="device-key-recipient">수신 PC에서 별도로 확인한 지문 64자리</label><input id="device-key-recipient" autocomplete="off" spellcheck="false">
+<button id="device-key-sources">지문 대조 후 등록된 기기 전용 키 찾기</button>
+<p>기존 키를 쓰려면 위 API 연결에서 Discord 봇은 <code>discord-jr</code>, Gemini API 키는 <code>gemini-laptop</code>처럼 서비스 이름으로 시작하는 별도 연결 ID에 대상 PC용 키를 저장하세요. 처음 배정할 때 수신 기기 지문을 확인합니다.</p>
+<label for="device-key-source">배정할 키</label><select id="device-key-source"><option value="">새 키 직접 입력</option></select>
+<label for="device-key-secret">해당 수신 PC 전용 키</label><input id="device-key-secret" type="password" autocomplete="new-password" spellcheck="false">
+<button id="device-key-export">이 기기용 암호화 파일 저장</button></div></fieldset>
+<fieldset><legend>수신 PC에서 암호화 키 받기</legend>
+<button id="device-key-open-envelope">발신 PC의 암호화 파일 열기</button>
+<div id="device-key-receive-form" hidden>
+<p id="device-key-envelope-info" style="white-space:pre-line;overflow-wrap:anywhere"></p>
+<label for="device-key-sender">발신 PC에서 별도로 확인한 지문 64자리</label><input id="device-key-sender" autocomplete="off" spellcheck="false">
+<button id="device-key-receive">금고에 저장할 내용 확인</button></div></fieldset>
+<p id="device-key-result" role="status" aria-live="polite"></p>
+</details>
+<details id="url-editor" class="pg-workspace">
+<summary>URL 참조 문서</summary>
+<p>HTTPS 문서를 키 없이 받아 글로 바꿔 이 PC에만 저장합니다. HTML·텍스트·마크다운·JSON만, 2 MiB·15초 안에서 받고 스크립트·스타일·메뉴·꼬리말은 버립니다. 제목은 # 줄로 남기고 토큰 모양은 가립니다. AI에는 신뢰할 수 없는 외부 자료로 표시해 조각씩 줍니다.</p>
+<div id="url-list"></div>
+<div class="pg-header"><input id="url-id" placeholder="참조 ID: club-rules" aria-label="참조 ID"><input id="url-name" placeholder="표시 이름" aria-label="표시 이름"><input id="url-address" placeholder="https://example.com/docs" aria-label="문서 주소"></div>
+<div class="pg-actions"><button id="url-save">등록하고 받기</button><button id="url-new">새 참조</button><button id="url-reload">목록 새로 고침</button></div><p id="url-result" aria-live="polite"></p>
+</details>
+<details id="ext-mcp" class="pg-workspace">
+<summary>MCP 서버 (요약 · 읽기 전용)</summary>
+<p>허브가 연결하는 다운스트림 MCP 서버입니다. 도구 수는 연결된 서버만 셉니다. 추가·삭제·연결은 에이전트 작업실 › MCP 연결에서 합니다.</p>
+<table id="ext-mcp-list" class="table"></table>
+<div class="pg-actions"><button id="ext-mcp-open">MCP 연결 화면 열기</button><button id="ext-mcp-reload">요약 새로 고침</button></div>
+</details>
+<details id="drive-editor" class="pg-workspace">
+<summary>Drive 동기화 폴더 (/drive 명령)</summary>
+<p>Google Drive 데스크톱이 동기화하는 폴더를 Google API 없이 다룹니다. 비워 두면 공유 폴더의 부모(「내 드라이브」)를 찾아 씁니다. 이 PC에만 저장합니다.</p>
+<label>Drive 루트 (절대 경로, 비우면 자동)</label><input id="drive-root" placeholder="예: G:\내 드라이브" aria-label="Drive 루트">
+<label class="row"><input id="drive-allow-write" type="checkbox"> 쓰기 허용 — /drive mirror로 로컬 폴더를 하위 폴더에 복사·갱신합니다. 지우지는 않습니다. 끄면 목록·정보만 봅니다.</label>
+<div class="pg-actions"><button id="drive-save">저장</button><button id="drive-check">루트 확인</button></div><p id="drive-result" class="hint" aria-live="polite"></p>
+</details>
+<details id="cmd-help" class="pg-workspace">
+<summary>채팅 명령 · 태그 도움말</summary>
+<p>에이전트 작업실 작업 지시, 파이프라인 AI 작업, 소스 분석의 외부 AI 질문 입력창에서 줄 첫머리에 /명령이나 @연결ID를 쓰고 Enter를 누르면 실행하고 결과를 그 자리에 넣습니다(@ 뒤 Tab 자동 완성). 쓰기 명령은 연결의 「AI 쓰기 허용」(Drive는 위 「쓰기 허용」)과 확인 창 승인이 둘 다 있어야 실행합니다. Claude Code·Codex 등에서는 MCP 도구 hub_command와 프롬프트 discord·actions·drive로 같은 명령을 씁니다. 실행 기록은 이력 탭의 「채팅 명령」에 남습니다.</p>
+<table id="cmd-help-list" class="table"></table>
+</details>
+      </div>
+    </section>
+    <section id="tab-knowledge" class="tab">
+      <!-- 위에서 아래로: 시간별 지표 → 그래프·표 → 그 수치로 쓰는 개선 방향(RSI 제안) → 새 원본 수집. ui/tabs/knowledge-metrics.js -->
+      <div id="kgm-panel" class="card"></div>
+      <div id="knowledge-workspace" class="card"></div>
+      <div id="kgm-improve" class="card"></div>
+      <div class="card"><h2>디렉터리 · Obsidian 볼트</h2>
+        <p class="hint">기존 소스·심볼·렌더링·바이너리 인덱스도 아래 원본 선택에서 조회합니다. 선택한 폴더는 파일 구조와 문서 링크를 수집합니다.</p>
+        <div class="row"><input id="knowledge-root" placeholder="수집할 로컬 폴더" style="flex:1" /><button id="knowledge-pick" class="small">폴더 선택</button><button id="knowledge-build">파일 수집</button><button id="knowledge-import">Obsidian 볼트 연결</button><button id="knowledge-cancel" class="small">수집 취소</button></div>
+        <p id="knowledge-progress" class="hint" aria-live="polite"></p>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast"></div>
+
+  <!-- 번들러 없이 순수 스크립트로 로드한다. 순서가 계약이다:
+       shell.js가 먼저($, toast, call 정의), boot.js가 마지막(초기 렌더 호출).
+       그 사이 탭 파일들은 서로 순서에 의존하지 않는다.
+       scripts/test-ui-contract.js 가 이 목록과 실제 파일이 맞는지 검사한다. -->
+  <script src="shell.js"></script>
+  <script src="panel-navigation.js"></script>
+  <script src="command-input.js"></script>
+  <script src="resource-embed.js"></script>
+  <script src="tabs/dashboard.js"></script>
+  <script src="tabs/media.js"></script>
+  <script src="tabs/debugging.js"></script>
+  <script src="tabs/version-share.js"></script>
+  <script src="tabs/autopilot.js"></script>
+  <script src="tabs/delegate.js"></script>
+  <script src="tabs/aider-studio.js"></script>
+  <script src="tabs/mcp.js"></script>
+  <script src="tabs/knowledge-graph.js"></script>
+  <script src="tabs/knowledge-metrics.js"></script>
+  <script src="tabs/skills.js"></script>
+  <script src="tabs/history.js"></script>
+  <script src="tabs/followup-queue.js"></script>
+  <script src="tabs/done-queue.js"></script>
+  <script src="tabs/memory.js"></script>
+  <script src="tabs/source-analysis.js"></script>
+  <script src="tabs/practice.js"></script>
+  <script src="tabs/game-projects.js"></script>
+  <script src="tabs/pipelines.js"></script>
+  <script src="tabs/delegation-flow.js"></script>
+  <script src="tabs/api-connections.js"></script>
+  <script src="tabs/device-key-delivery.js"></script>
+  <script src="tabs/external-connections.js"></script>
+  <script src="tabs/pipeline-canvas.js"></script>
+  <script src="tabs/game-pipeline.js"></script>
+  <script src="tabs/pipeline-graph.js"></script>
+  <script src="tabs/settings.js"></script>
+  <script src="tabs/rea-target.js"></script>
+  <script src="tabs/analysis-graph.js"></script>
+  <script src="tabs/self-improvement.js"></script>
+  <script src="creation-elements.js"></script>
+  <script src="creation-blocks.js"></script>
+  <script src="tabs/creation-studio.js"></script>
+  <script src="tabs/creation-resources.js"></script>
+  <script src="tabs/herdr.js"></script>
+  <script src="tabs/followup-queue.js"></script>
+  <script src="tabs/done-queue.js"></script>
+  <script src="public-lite.js"></script>
+  <script src="boot.js"></script>
+</body>
+</html>

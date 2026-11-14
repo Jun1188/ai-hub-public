@@ -1,0 +1,14 @@
+#tab-creation{--studio-accent:#86b5a5}
+.cs-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+.cs-heading h1{font-size:24px;margin:0}.cs-heading p{margin:6px 0;color:var(--muted,#a7abae)}
+.cs-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}.cs-tabs button[aria-selected=true]{border-color:var(--studio-accent);color:var(--studio-accent)}
+.cs-pane[hidden]{display:none!important}.cs-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}.cs-toolbar input{width:200px}.cs-toolbar select{width:auto;max-width:240px}
+.cs-layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:14px}.cs-workspace{min-width:0}.cs-sidebar{min-width:0;max-height:900px;overflow:auto}.cs-sidebar textarea{width:100%;box-sizing:border-box}
+#cs-selected{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;padding:10px;border:1px solid #545c5a;max-height:180px;overflow:auto}
+#cs-canvas{border:1px solid #545c5a;min-height:650px}#cs-status{min-height:24px;color:var(--studio-accent);margin:8px 0}
+.cs-proposal{padding:12px;border:1px solid #516a60;margin:10px 0}.cs-proposal pre{font-size:11px;max-height:260px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}.cs-proposal button{margin:6px 6px 0 0}
+.cs-frame{width:100%;height:650px;border:1px solid #545c5a}.cs-skill{padding:12px 0;border-bottom:1px solid #414744}.cs-skill h3{margin:0 0 4px}.cs-skill button{margin-top:8px}
+.cs-gallery{display:flex;gap:12px;flex-wrap:wrap}.cs-gallery figure{width:220px;margin:0}.cs-gallery img{max-width:220px;max-height:240px;object-fit:contain}.cs-gallery figcaption{overflow-wrap:anywhere}
+.cs-resource-grid{display:grid;grid-template-columns:minmax(260px,1fr) minmax(260px,1fr);gap:16px}.cs-resource-grid textarea{width:100%;box-sizing:border-box}.cs-steps{display:flex;gap:10px;flex-wrap:wrap;color:#bcc9c1}.cs-steps span{border:1px solid #526157;padding:6px 10px}
+@media(max-width:1200px){.cs-layout{grid-template-columns:minmax(0,1fr)}.cs-sidebar{max-height:none}.cs-resource-grid{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){#tab-creation *{scroll-behavior:auto}}

@@ -1,0 +1,2 @@
+# Preserve the exported source and pinned vendor license bytes on every platform.
+* -text

@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "font-awesome",
+  "version": "4.7.0",
+  "source": "https://registry.npmjs.org/font-awesome/-/font-awesome-4.7.0.tgz",
+  "integrity": "sha512-U6kGnykA/6bFmg1M/oT9EkFeIYv7JlX3bozwQJWiiLz6L0w3F5vBVPxHlwyX/vtNq1ckcpRKOB9f2Qal/VtFpg==",
+  "license": "OFL-1.1 AND MIT",
+  "fontLicenseSource": "https://openfontlicense.org/documents/OFL.txt",
+  "files": {
+    "LICENSE-CSS.txt": "79d8f9d62326f84c1001e1dc09a65479ed8ee3629d5487a7d8ac0f13f99e1348",
+    "OFL.txt": "3e466fde1ef9ff1daf43393260620bd0c93a66f8ef9a2611e3f82ac05a949053",
+    "README.md": "610427fe917f2b51ef69b5bfa9a7bfe3fcba59b1ccaf86a500a47e5fa1da322b",
+    "css/font-awesome.min.css": "799aeb25cc0373fdee0e1b1db7ad6c2f6a0e058dfadaa3379689f583213190bd",
+    "fonts/fontawesome-webfont.eot": "7bfcab6db99d5cfbf1705ca0536ddc78585432cc5fa41bbd7ad0f009033b2979",
+    "fonts/fontawesome-webfont.svg": "ad6157926c1622ba4e1d03d478f1541368524bfc46f51e42fe0d945f7ef323e4",
+    "fonts/fontawesome-webfont.ttf": "aa58f33f239a0fb02f5c7a6c45c043d7a9ac9a093335806694ecd6d4edc0d6a8",
+    "fonts/fontawesome-webfont.woff": "ba0c59deb5450f5cb41b3f93609ee2d0d995415877ddfa223e8a8a7533474f07",
+    "fonts/fontawesome-webfont.woff2": "2adefcbc041e7d18fcf2d417879dc5a09997aa64d675b7a3c4b6ce33da13f3fe"
+  }
+}

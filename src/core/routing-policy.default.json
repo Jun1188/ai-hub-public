@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "kind": "shared-routing-policy",
+  "consumers": [
+    "harness/lib/hardware-advisor.js",
+    "AI Hub src/core/hardware-advisor.js (byte-identical copy)"
+  ],
+  "units": {
+    "bytes": "integer bytes",
+    "time": "milliseconds",
+    "fractions": "0..1"
+  },
+  "valueGate": {
+    "interactiveMaxMs": 60000,
+    "backgroundMaxMs": 900000
+  },
+  "vram": {
+    "reserveBytes": 629145600,
+    "reserveFraction": 0.08,
+    "computeOverheadBytes": 644245094,
+    "minPartialFraction": 0.6
+  },
+  "ram": {
+    "reserveBytes": 3221225472,
+    "maxUsedFraction": 0.9
+  },
+  "admission": {
+    "requireAcPowerForLocal": true,
+    "maxGpuUtilForBackground": 0.35,
+    "maxCpuUtilForBackground": 0.85,
+    "heavyAppPolicy": "defer",
+    "heavyAppMinBytes": 1500000000,
+    "deferBackgroundWhenTransient": true,
+    "minDeadlineToDeferMs": 1800000,
+    "heavyApps": [
+      "Unity",
+      "UnrealEditor",
+      "Blender",
+      "ComfyUI"
+    ]
+  },
+  "quality": {
+    "low": {
+      "minParamsB": 3
+    },
+    "medium": {
+      "minParamsB": 7
+    },
+    "high": {
+      "cloudOnly": true
+    }
+  },
+  "kinds": {
+    "deterministic": {
+      "route": "tool"
+    },
+    "classify": {
+      "quality": "low",
+      "localPreferred": true
+    },
+    "extract": {
+      "quality": "low",
+      "localPreferred": true
+    },
+    "embed": {
+      "quality": "low",
+      "localPreferred": true,
+      "modelType": "embedding"
+    },
+    "summarize": {
+      "quality": "medium",
+      "localPreferred": true
+    },
+    "critique": {
+      "quality": "high"
+    },
+    "code-edit": {
+      "quality": "high"
+    },
+    "review": {
+      "quality": "high"
+    },
+    "plan": {
+      "quality": "high"
+    }
+  },
+  "context": {
+    "defaultTokens": 4096,
+    "minTokens": 2048
+  },
+  "heuristics": {
+    "kvBytesPerTokenPerB": 16384,
+    "decodeTpsPerB": {
+      "gpu-full": 400,
+      "gpu-partial": 90,
+      "cpu": 45
+    },
+    "prefillMultiplier": {
+      "gpu-full": 25,
+      "gpu-partial": 8,
+      "cpu": 6
+    },
+    "reasoningInflationMax": 8,
+    "diskBytesPerSec": 1500000000,
+    "loadOverheadMs": 4000,
+    "loadedModelBonusMs": 0
+  },
+  "cloud": {
+    "route": "codex",
+    "baseMs": 4000,
+    "msPerOutputToken": 25,
+    "sessionPrefixTokens": 17540,
+    "cachedInputWeight": 0.1,
+    "batchWhenTaskTokensBelow": 4000
+  },
+  "batching": {
+    "groupBy": [
+      "model",
+      "family"
+    ],
+    "loadedModelFirst": true,
+    "maxModelSwapsPerBatch": 1
+  },
+  "localInference": {
+    "maxConcurrent": 1,
+    "statsMinSamples": 3,
+    "statsStaleDays": 30,
+    "autoMemory": {
+      "minResultChars": 200,
+      "maxExpectedMs": 30000
+    }
+  }
+}

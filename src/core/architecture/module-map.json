@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "about": "Logical domains of the Hub source. Paths stay where they are (external copies and tests require them by path); the audit classifies every file and checks the allowed dependency direction. New code goes into a domain folder.",
+  "layers": {
+    "src/core/": { "mayNotRequire": ["electron/", "ui/", "src/mcp/"] },
+    "src/mcp/": { "mayNotRequire": ["electron/", "ui/"] },
+    "electron/": { "mayNotRequire": ["ui/"] }
+  },
+  "order": ["platform", "hardware", "local-models", "integration", "delegation", "source-analysis", "debugging", "knowledge", "harness-bridge", "game-insight", "pipeline", "governance", "self-improvement", "mcp-surface", "desktop-shell", "renderer", "remote"],
+  "domains": {
+    "platform": ["src/core/config.js", "src/core/paths.js", "src/core/share.js", "src/core/app-root-pointer.js", "src/core/console-text.js", "src/core/secret-scrub.js", "src/core/prompt-safety.js", "src/core/updater.js", "src/core/device-profile.js", "src/core/feature-profile.js","src/core/caller.js", "src/core/work-table.js", "src/core/change-signals.js", "src/core/atomic-file.js", "src/core/data-retention.js", "src/core/promise-timeout.js", "src/core/text-vectors.js", "src/core/markdown-frontmatter.js", "src/core/local-endpoints.js", "src/core/credential-broker.js", "src/core/credential-migration.js", "src/core/credential-vault.js"],
+    "local-models": ["src/core/lmstudio.js", "src/core/lmstudio-cpu-load.js", "src/core/llama-model-config.js", "src/core/local-chat-stream.js", "src/core/local-runtime.js", "src/core/local-server-control.js", "src/core/local-inference-lease.js", "src/core/local-gguf-catalog.js", "src/core/local-model-select.js", "src/core/local-model-quality.json", "src/core/model-admission.js", "src/core/model-change-lock.js", "src/core/model-control.js", "src/core/model-lifecycle.js", "src/core/gpufit.js", "src/core/embedder.js", "src/core/reply-budget.js", "src/core/hardware-optimizer.js", "src/core/resource-monitor.js", "src/core/hardware-diagnostics.js","src/core/comfy-control.js", "src/core/comfy-workflow-format.js", "src/core/creative-model-catalog.js", "src/core/creative-model-catalog.json"],
+    "delegation": ["src/core/offload.js", "src/core/offload-request.js", "src/core/schema-strict.js", "src/core/delegator.js", "src/core/delegation-flow.js", "src/core/agent-workers.js", "src/core/agy-model-tiers.json", "src/core/aider-studio.js", "src/core/tool-usage.js", "src/core/stats.js", "src/core/activity.js", "src/core/multiagent/"],
+    "pipeline": ["src/core/pipeline.js", "src/core/pipeline-api-request.js", "src/core/pipeline-delay.js", "src/core/pipeline-graph-adapter.js", "src/core/pipeline-offload-step.js", "src/core/pipeline-run-lifecycle.js", "src/core/pipeline-run-logs.js", "src/core/pipeline-state-graph.js", "src/core/pipeline-hub-step.js", "src/core/local-pipeline-steps.js", "src/core/autopilot.js", "src/core/panel-control.js"],
+    "hardware": ["src/core/hardware-advisor.js", "src/core/routing-policy.default.json", "src/core/telemetry.js", "src/core/telemetry-analysis.js", "src/core/devtools.js", "src/core/debugging/culprits.js", "src/core/debugging/probe.js", "src/core/debugging/threads.js"],
+    "source-analysis": ["src/core/codeindex.js", "src/core/symbolmap.js", "src/core/source-qa.js", "src/core/source-scan-worker.js", "src/core/deepdive.js", "src/core/renderpipe.js", "src/core/cvarmap.js", "src/core/engine-graph.js", "src/core/ue-profile.js", "src/core/analysis-adapters.js", "src/core/analysis-context.js", "src/core/analysis-graph.js", "src/core/analysis-process.js", "src/core/adapter-resolver.js", "src/core/ghidra-project.js", "src/core/rea-analysis.js", "src/core/game-identity.js", "src/core/architecture/"],
+    "debugging": ["src/core/debugging/frame-capture.js", "src/core/debugging/presentmon.js", "src/core/debugging/render-monitor.js", "src/core/debugging/process-inspect.js"],
+    "knowledge": ["src/core/knowledge-graph.js", "src/core/knowledge-metrics.js","src/core/memory.js", "src/core/shared-repo-memory.js", "src/core/shared-agent-context.js", "src/core/repository-skills.js", "src/core/skills.js", "src/core/research-review.js", "src/core/finetune.js", "src/core/cache/", "src/core/obsidian/"],
+    "integration": ["src/core/registrar.js", "src/core/connectors.js", "src/core/clitools.js", "src/core/downstream.js", "src/core/api-connections.js", "src/core/api-specs.js", "src/core/url-references.js", "src/core/local-credential-proxy.js", "src/core/passthrough-contract.js", "src/core/passthrough-contract.json", "src/core/passthrough-probe.js", "src/core/projects.js", "src/core/supply/"],
+    "harness-bridge": ["src/core/harness-bridge/", "src/core/toolroute/"],
+    "governance": ["src/core/governor/"],
+    "self-improvement": ["src/core/evaluation/", "src/core/rsi/"],
+    "game-insight": ["src/core/gamer-lens/"],
+    "mcp-surface": ["src/mcp/"],
+    "desktop-shell": ["electron/"],
+    "renderer": ["ui/"],
+    "remote": ["src/remote/", "src/contracts/"]
+  },
+  "entrypoints": ["electron/main.js", "electron/preload.cjs", "src/mcp/stdio-entry.js", "src/mcp/http-entry.js", "src/mcp/cli-bridge.js", "src/mcp/harness-panel-bridge.js", "src/core/source-scan-worker.js", "src/core/architecture/structure-audit.js", "src/core/cache/cache-gc.js"],
+  "staged": ["src/core/adapter-resolver.js", "src/core/creative-model-catalog.js", "src/core/game-identity.js"]
+}

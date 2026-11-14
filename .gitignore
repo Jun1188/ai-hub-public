@@ -1,0 +1,12 @@
+node_modules/
+release/
+*.log
+*.part
+*.tmp
+.env*
+config.local.json
+config.cache.json
+public-test-data/
+resources/runtime/node.exe
+resources/herdr/herdr.exe
+resources/herdr/conpty/

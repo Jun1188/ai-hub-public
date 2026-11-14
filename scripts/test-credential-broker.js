@@ -1,0 +1,45 @@
+'use strict';
+const assert=require('assert/strict'),fs=require('fs'),path=require('path'),os=require('os');
+const {createVault}=require('../src/core/credential-vault'),{createBroker}=require('../src/core/credential-broker');
+const root=fs.mkdtempSync(path.join(os.tmpdir(),'hub-vault-v2-test-'));
+const storage={isEncryptionAvailable:()=>true,encryptString:s=>Buffer.from('fixture-os:'+s),decryptString:b=>b.toString().slice(11)};
+const ORIGIN='http://127.0.0.1:1234',localOrigin=()=>ORIGIN;
+const vault=createVault({root,storage:()=>storage,binding:()=>ORIGIN});
+const credential='fixture-credential-never-real';
+(async()=>{
+  vault.put('lmstudio',credential);const dir=path.join(root,'credentials.local'),file=path.join(dir,'lmstudio.json');
+  const original=JSON.parse(fs.readFileSync(file,'utf8'));assert.equal(original.version,2);assert.equal(Buffer.from(original.nonce,'base64').length,12);assert(!fs.readFileSync(file,'utf8').includes(credential));
+  assert.equal(vault.use('lmstudio',original.origin,x=>x),credential);
+  assert.throws(()=>vault.use('lmstudio','https://evil.example',()=>{}),/origin/);
+  assert.equal(typeof vault.read,'undefined');
+  const modified={...original,tag:Buffer.alloc(16).toString('base64')};fs.writeFileSync(file,JSON.stringify(modified));assert.throws(()=>vault.use('lmstudio',original.origin,()=>{}),/authentication/);
+  fs.writeFileSync(file,JSON.stringify(original));vault.put('lmstudio',credential);const replacement=JSON.parse(fs.readFileSync(file,'utf8'));assert.notEqual(original.nonce,replacement.nonce);assert.notEqual(original.keyId,replacement.keyId);
+  const legacy={version:1,encrypted:storage.encryptString(credential).toString('base64')};fs.writeFileSync(file,JSON.stringify(legacy));assert.equal(vault.use('lmstudio',original.origin,x=>x),credential);assert.equal(JSON.parse(fs.readFileSync(file,'utf8')).version,2);assert(fs.existsSync(file+'.v1.encrypted-backup'));
+  let calls=0;const broker=createBroker({vault,localOrigin,authorize:r=>r.jobId==='approved-job',fetchFn:async(url,options)=>{
+    calls++;assert.equal(new URL(url).origin,original.origin);assert.equal(options.headers.Authorization,'Bearer '+credential);assert(!url.includes(credential));assert(!String(options.body).includes(credential));
+    return new Response(JSON.stringify({echo:credential,access_token:'fixture-new-token',nested:{Authorization:credential,keep:'ok'}}),{headers:{'Content-Type':'application/json'}});
+  }});
+  const request={credentialRef:'credential:lmstudio',operationId:'lmstudio.models',jobId:'approved-job',payload:{}};
+  const value=await broker.request(request);assert.equal(value.echo,'[redacted]');assert.equal(value.access_token,undefined);assert.equal(value.nested.Authorization,undefined);
+  await assert.rejects(()=>broker.request({...request,jobId:'unapproved-job'}),/approved/);
+  await assert.rejects(()=>broker.request({...request,credentialRef:'credential:llamacpp'}),/reference/);
+  await assert.rejects(()=>broker.request({...request,url:'https://evil.example'}),/Invalid/);assert.equal(calls,1);
+  const denied=createBroker({vault,localOrigin,fetchFn:async()=>new Response('{}',{status:429,headers:{'Retry-After':'5'}})});
+  await assert.rejects(()=>denied.request(request),e=>e.status===429&&e.code==='BROKER_HTTP_REJECTED'&&e.outcome==='rejected'&&e.retryAfterMs===5000);
+  const unknown=createBroker({vault,localOrigin,fetchFn:async()=>{throw Error('fixture-network-with-'+credential);}});
+  await assert.rejects(()=>unknown.request(request),e=>e.code==='BROKER_OUTCOME_UNKNOWN'&&!e.message.includes(credential));
+  const encoder=new TextEncoder(),chunks=['data: '+JSON.stringify({choices:[{delta:{content:credential}}],access_token:credential})+'\n\n','data: [DONE]\n\n'];
+  const streaming=createBroker({vault,localOrigin,fetchFn:async()=>new Response(new ReadableStream({start(c){for(const text of chunks){c.enqueue(encoder.encode(text.slice(0,20)));c.enqueue(encoder.encode(text.slice(20)));}c.close();}}),{headers:{'Content-Type':'text/event-stream'}})});
+  const response=await streaming.requestResponse(request),text=await response.text();assert(!text.includes(credential));assert(!text.includes('access_token'));assert(text.includes('[DONE]'));
+  const tailBroker=createBroker({vault,localOrigin,fetchFn:async()=>new Response('data: '+JSON.stringify({access_token:'fixture-new-unknown-token',choices:[{delta:{content:credential}}]}),{headers:{'Content-Type':'text/event-stream'}})});
+  const tail=await (await tailBroker.requestResponse(request)).text();assert(!tail.includes('fixture-new-unknown-token'));assert(!tail.includes(credential));
+  const reflectedError=createBroker({vault,localOrigin,fetchFn:async()=>new Response('access_token=fixture-error-new-token '+credential,{status:400,headers:{'Content-Type':'text/plain'}})});
+  await assert.rejects(()=>reflectedError.request(request),e=>!e.message.includes('fixture-error-new-token')&&!e.message.includes(credential));
+  // Retired providers stay unusable: no key registration and no broker operation.
+  assert.throws(()=>vault.put('omniroute',credential),/OmniRoute is retired/);
+  await assert.rejects(()=>broker.request({...request,credentialRef:'credential:omniroute',operationId:'omniroute.chat'}),/OmniRoute is retired/);
+  for(const provider of ['gemini','nvidia','typesafe','freellmapi'])assert.throws(()=>vault.put(provider,credential),/Unknown credential provider/);
+  await assert.rejects(()=>broker.request({credentialRef:'credential:gemini',operationId:'gemini.models',jobId:'approved-job',payload:{}}),/Unsupported broker operation/);
+  fs.unlinkSync(path.join(dir,'key-table.v2.json'));assert.throws(()=>vault.use('lmstudio',original.origin,()=>{}),/missing/);
+  console.log('Credential v2/broker: authenticated encryption, nonce/key rotation, origin/reference binding, legacy migration, authorization, reflection/stream scrubbing, no unknown-outcome replay, retired providers blocked');
+})().finally(()=>fs.rmSync(root,{recursive:true,force:true})).catch(e=>{console.error(e);process.exitCode=1;});

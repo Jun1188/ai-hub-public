@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "measuredWith": "offload 기계 채점 8건(agy G-6과 같은 묶음: module.exports 이름 5건, fs 동기 호출 줄 번호 3건), 12k자 청크, temperature 0, JSON Schema 강제, RTX 4060 Ti 8 GB(다른 앱 약 1.7 GB 사용), 2026-10-18",
+  "note": "키는 LM Studio 모델 ID 또는 GGUF 파일 이름(확장자 제외). 여기 없는 모델은 local-model-select가 자동으로 고르지 않는다. 값을 바꿀 때는 같은 묶음으로 다시 잰다.",
+  "models": {
+    "google/gemma-4-12b": { "precision": 0.972, "recall": 1, "perfect": 7, "tasks": 8, "seconds": 119, "placement": "gpu-partial-0.7", "reasoning": "off (reasoning_effort none; 켜면 8건 모두 빈 답)" },
+    "qwen2.5-coder-7b-instruct-q5_k_m": { "precision": 0.646, "recall": 0.848, "perfect": 3, "tasks": 8, "seconds": 41, "placement": "gpu", "genTps": 43.6 },
+    "rlm-qwen3-8b-v0.1-q4_k_m": { "precision": 0.646, "recall": 0.726, "perfect": 3, "tasks": 8, "seconds": 53, "placement": "gpu", "genTps": 43.9 }
+  }
+}

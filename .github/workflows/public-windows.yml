@@ -1,0 +1,50 @@
+name: Public Windows package
+on:
+  push:
+    branches: [main, 'public-lite/**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package-install:
+    runs-on: windows-2025
+    timeout-minutes: 25
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install locked build dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Check public boundaries and adapter
+        run: |
+          npm run test:public
+          node scripts/test-herdr-adapter.js
+          node scripts/test-todo-done-view.js
+      - name: Fetch and verify pinned supplier inputs
+        shell: pwsh
+        run: ./scripts/Get-PublicReleaseInputs.ps1 -DownloadRoot "$env:RUNNER_TEMP/public-inputs"
+      - name: Build independent public installer
+        run: npm run dist -- --publish never
+      - name: Install, observe first paint and uninstall
+        shell: pwsh
+        run: |
+          $setup=Get-ChildItem -LiteralPath release -Filter 'AI-Hub-Lite-Setup-*.exe'
+          if(@($setup).Count -ne 1){throw 'Expected one public Setup.'}
+          ./scripts/verify-public-install.ps1 -Setup $setup.FullName -OutputRoot "$env:RUNNER_TEMP/public-install-check"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: public-windows-package
+          retention-days: 14
+          if-no-files-found: error
+          path: |
+            release/AI-Hub-Lite-Setup-*.exe
+            ${{ runner.temp }}/public-install-check/first-launch.json
+            ${{ runner.temp }}/public-install-check/first-launch.png
+            ${{ runner.temp }}/public-install-check/installation-result.json

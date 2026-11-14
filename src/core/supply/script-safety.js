@@ -59,7 +59,7 @@ function scanText(text, { path: relPath = '' } = {}) {
   for (const m of text.matchAll(/[^\n]*(?:Startup|Start Menu[\\/]Programs[\\/]Startup)[^\n]*/gi)) {
     if (/\b(?:copy|move|writeFile|Set-Content|Out-File|Copy-Item|Move-Item|New-Item)\b|>>?/.test(m[0])) add('persistence', m.index);
   }
-  for (const m of text.matchAll(/[^\n]*(?:\.ssh[\\/]id_[\w*.-]+|\.aws[\\/]credentials|Login Data|\bCookies\b|\.codex[\\/]auth\.json|\.claude[\\/]\.credentials(?:\.json)?|config\.local\.json)[^\n]*/gi)) {
+  for (const m of text.matchAll(/[^\n]*(?:\.ssh[\\/]id_[\w*.-]+|\.aws[\\/]credentials|Login Data|\bCookies\b|\.codex[\\/]auth\.json|\.claude[\\/]\.credentials(?:\.json)?|config\.local\.json|credentials\.local[\\/]|key-table\.v2\.json)[^\n]*/gi)) {
     if (/\b(?:cat|type|Get-Content|readFile(?:Sync)?|open|copy|cp|Copy-Item|sqlite3|curl|wget)\b/i.test(m[0])) add('credential-harvest', m.index);
   }
   match('credential-harvest', /\bgit\s+credential\s+fill\b/gi);

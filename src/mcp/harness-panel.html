@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ai-hub 통합 관리</title>
+<style>
+:root{color-scheme:light;--bg:#fff;--ink:#152438;--muted:#43566d;--line:#c6d3e1;--surface:#edf3fa;--accent:#204b83;--on:#fff;--good:#21613f;--warn:#8a4600;font:14px/1.55 "Malgun Gothic","Apple SD Gothic Neo",sans-serif}
+:root[data-theme=dark]{color-scheme:dark;--bg:#142237;--ink:#f5f8fc;--muted:#bfcee0;--line:#536a84;--surface:#20344e;--accent:#b1d1ff;--on:#142237;--good:#a2e7b9;--warn:#ffc58a}
+*{box-sizing:border-box}body{margin:0;padding:18px;background:var(--bg);color:var(--ink);opacity:1}
+h1{font-size:22px;margin:0}h2{font-size:17px;margin:14px 0 8px}h3{font-size:15px;margin:10px 0}p{margin:8px 0;max-width:75ch}
+header,.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}header{justify-content:space-between}
+button,input,select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:7px 10px;opacity:1}
+button{cursor:pointer;font-weight:600}button:hover{border-color:var(--accent);background:var(--surface)}
+button:disabled{cursor:not-allowed;color:var(--muted);background:var(--surface);opacity:1}
+button.primary,nav button[aria-selected=true]{background:var(--accent);color:var(--on);border-color:var(--accent)}
+button.primary:disabled{background:var(--surface);color:var(--muted);border-color:var(--line)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px}label{display:inline-flex;align-items:center;gap:7px}input[type=checkbox]{width:18px;height:18px}
+nav{display:flex;gap:6px;overflow:auto;margin:16px 0;border-bottom:1px solid var(--line);padding-bottom:10px}nav button{white-space:nowrap}
+[hidden]{display:none!important}.muted,small{color:var(--muted)}.good{color:var(--good)}#status{padding:10px 0;border-bottom:1px solid var(--line)}
+#metrics{display:flex;flex-wrap:wrap;border:1px solid var(--line);margin:12px 0;background:var(--surface)}
+.metric{padding:10px 16px;flex:1;min-width:120px;border-right:1px solid var(--line)}.metric strong{display:block;font-size:20px;font-variant-numeric:tabular-nums}
+.box{border:1px solid var(--line);border-left:4px solid var(--accent);padding:12px;margin:10px 0}
+table{width:100%;border-collapse:collapse;text-align:left}th,td{padding:8px;border-bottom:1px solid var(--line);overflow-wrap:anywhere}th{background:var(--surface)}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+#notice{min-height:24px;color:var(--accent)}textarea{width:100%;min-height:96px;resize:vertical}.warn{color:var(--warn)}td .actions{margin:0}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;background:var(--surface);border:1px solid var(--line);padding:10px;max-height:420px;overflow:auto;margin:8px 0;font:13px/1.5 Consolas,"D2Coding",monospace}body.large{font-size:16px}body.compact .box,body.compact td{padding:7px}
+@media(max-width:480px){body{padding:12px}.metric{min-width:100px;padding:8px}table{font-size:13px}.row>*{max-width:100%}}
+</style></head><body>
+<header><div><h1>ai-hub</h1><span class="muted">자원·모델·파이프라인을 한곳에서 확인</span></div><button id="refresh">상태 새로고침</button></header>
+<p id="status" role="status">호스트 연결 중…</p><div id="metrics"></div><div id="model-preparation" role="status"></div>
+<nav aria-label="Hub 기능"><button data-tab="overview" aria-selected="true">현황</button><button data-tab="workers" aria-selected="false">파이프라인</button><button data-tab="hardware" aria-selected="false">하드웨어</button><button data-tab="evidence" aria-selected="false">공유·근거</button><button data-tab="models" aria-selected="false">모델·연결</button><button data-tab="settings" aria-selected="false">권한·설정</button></nav>
+<section id="overview"><h2>작업 흐름</h2><p>큰 입력은 offload로 로컬 작업자가 직접 읽고, 상위 AI에는 압축된 결과만 돌아갑니다.</p>
+<div id="summary" class="box">첫 상태를 기다리고 있습니다.</div>
+<div class="actions"><button data-open="dashboard">Hub 대시보드 열기</button><button id="attach">상태를 AI에 첨부</button></div>
+<p class="muted">CPU·RAM·GPU·VRAM은 게임 에디터를 포함한 컴퓨터 전체 측정값입니다. 상태 조회에는 모델 추론을 사용하지 않습니다.</p></section>
+<section id="workers" hidden><h2>파이프라인</h2><div class="row"><button id="pl-refresh">목록 새로고침</button><label><input id="pl-allow" type="checkbox">다음 파이프라인 시작·재개·중지 1회 허용</label></div><div id="pipelines">목록 조회 전</div>
+<p class="muted">프로그램 실행이 포함된 파이프라인은 Hub에 저장된 명령을 그대로 실행합니다.</p>
+<div class="actions"><button data-open="pipelines">파이프라인 관리</button><button data-open="connections">AI 연결 관리</button></div></section>
+<section id="hardware" hidden><h2>하드웨어와 로컬 실행 판단</h2><div class="row"><button id="hw-refresh">다시 측정</button><span id="hw-at" class="muted"></span></div>
+<div id="hw-env" class="box">하드웨어 조회 전</div>
+<h3>지금 작업을 어디로 보낼까</h3><div id="hw-routes"></div>
+<h3>로컬 모델 적합도</h3><p class="muted">입력 2천·출력 5백 토큰 기준입니다. 같은 PC 실측이 3회 이상 쌓이면 실측으로 계산합니다.</p><div id="hw-models"></div>
+<div class="box"><h3>이 PC의 하드웨어 정책</h3><p><label><input id="hw-ac" type="checkbox">AC 전원일 때만 로컬 모델 실행</label></p>
+<p><label>무거운 앱 실행 중 <select id="hw-heavy"><option value="defer">로컬 실행 보류</option><option value="cpu-only">GPU 없이 CPU로만 실행</option></select></label></p>
+<p><label>로컬 동시 실행 <select id="hw-conc"><option>1</option><option>2</option><option>3</option></select></label></p><p id="hw-overrides" class="muted"></p>
+<p><label><input id="hw-allow" type="checkbox">다음 정책 저장 1회 허용</label></p><div class="actions"><button id="hw-save" class="primary" disabled>정책 저장</button><button id="hw-reset" disabled>공유 기본값으로 되돌리기</button></div>
+<p class="muted">이 PC에만 저장되고 다른 컴퓨터와 공유하지 않습니다. 공유 기본값과 같은 값은 따로 저장하지 않습니다.</p></div></section>
+<section id="evidence" hidden><h2>공유 저장소와 연구 검토</h2><p id="sharing">공유 상태 조회 전</p>
+<div class="box"><h3>연구 기반 자가개선</h3><p id="research-status">연구 검토 상태 조회 전</p><div id="research-picks"></div><p class="muted">Codex 예약이 최신 자료를 선별합니다. 개선 효과는 가설별 평가로 확인하며, 후보는 검토 후 반영합니다.</p></div>
+<div class="actions"><button data-open="sharing">공유·동기화 설정</button><button data-open="memory">메모리 관리</button><button data-open="skills">스킬 관리</button><button data-open="rag">프로젝트 근거 검색</button></div>
+<p class="muted">공유된 자료는 검토 근거입니다. 적용 여부와 실행 권한은 상위 AI와 사용자가 결정합니다.</p></section>
+<section id="models" hidden><h2>로컬 모델</h2><div class="row"><button id="details-refresh">모델·연결 다시 조회</button><button data-open="models">런타임 관리 열기</button></div><div id="catalog"></div>
+<div class="box"><h3>설치된 모델 준비</h3><div class="row"><label>모델 <select id="model"><option value="">목록 조회 후 선택</option></select></label><label>배치 <select id="placement"><option value="cpu">CPU</option><option value="auto">런타임 자동</option></select></label><label>문맥 <select id="context"><option>2048</option><option>4096</option><option>8192</option><option>16384</option></select></label></div>
+<p><label><input id="allow-load" type="checkbox">이번 패널에서 선택한 모델 준비를 허용</label></p><button id="prepare" class="primary" disabled>선택 모델 준비</button><p id="operation" role="status">모델 준비는 RAM·VRAM을 사용합니다. 실행 중인 Hub 작업과 메모리 여유를 확인합니다.</p>
+<p class="muted">기존 모델만 사용하며 다운로드하지 않습니다. 지연 중에는 요청 ID로 상태를 조회합니다. 실패 후에는 실제 모델 상태를 다시 확인하세요.</p></div>
+<div class="actions"><button data-open="connections">MCP·AI 연결 관리</button><button data-open="credentials">API 키 암호화 관리</button></div></section>
+<section id="settings" hidden><h2>패널 설정</h2><div class="two"><div><p><label>테마 <select id="theme"><option value="auto">시스템</option><option value="light">밝게</option><option value="dark">어둡게</option></select></label></p><p><label><input id="large" type="checkbox">큰 글씨</label></p><p><label><input id="compact" type="checkbox">간격 줄이기</label></p></div>
+<div><p><label><input id="auto" type="checkbox" checked>상태 자동 조회</label></p><p><label>조회 간격 <select id="interval"><option value="5000">5초</option><option value="15000">15초</option><option value="30000">30초</option><option value="60000">60초</option></select></label></p></div></div>
+<h2>현재 기능과 권한</h2><table><tbody id="permissions"></tbody></table>
+<p class="muted">패널 설정은 이 화면에만 적용됩니다. 작업자의 수정·테스트 권한과 공급자 설정은 Hub 관리 화면에서 저장합니다. API 키는 모델 입력이나 공유 저장소에 보내지 않고 OS 암호화로 보관합니다.</p>
+<div class="actions"><button data-open="settings">Hub 설정</button><button data-open="credentials">암호화 키 관리</button></div></section>
+<p id="notice" role="status"></p>
+<script>
+'use strict';
+let nextId=0,stopped=false,busy=false,timer=null,latest=null,capabilities={},initialized=false,failures=0,detailData=null,detailBusy=false,operationId=null,opTimer=null,preparing=false;
+let hwData=null,hwBusy=false,hwEditing=false,plData=null,plBusy=false,acting=false;
+const pending=new Map(),parentWindow=window.parent,$=id=>document.getElementById(id),scheme=matchMedia('(prefers-color-scheme: dark)');
+function send(value){parentWindow.postMessage({jsonrpc:'2.0',...value},'*');}
+function request(method,params){
+ if(stopped)return Promise.reject(new Error('Panel closed'));
+ const id=++nextId;return new Promise((resolve,reject)=>{
+  const timeout=setTimeout(()=>{pending.delete(id);reject(new Error('Host timeout'));},15000);
+  pending.set(id,{resolve,reject,timeout});send({id,method,params});
+ });
+}
+function parse(result){if(result?.isError){const e=new Error('Hub action failed');e.detail=result?.content?.find(c=>c.type==='text')?.text||'';throw e;}if(result?.structuredContent)return result.structuredContent;const text=result?.content?.find(c=>c.type==='text')?.text;return text?JSON.parse(text):null;}
+async function tool(name,args={}){if(!initialized||!capabilities.serverTools)throw new Error('Host tools unavailable');return parse(await request('tools/call',{name,arguments:args}));}
+function errText(e,fallback){const d=e&&e.detail;return d&&/[가-힣]/.test(d)&&d.length<=300&&!d.startsWith('Hub 작업을 완료하지 못했습니다')?d:fallback;}
+function secs(ms){return Math.max(1,Math.round(ms/1000))+'초';}function gib(b){return Number.isFinite(b)?(b/1024**3).toFixed(1)+' GiB':'미확인';}
+function p(value){return Number.isFinite(value)?value.toFixed(1)+'%':'측정 대기';}
+function element(tag,text,cls){const e=document.createElement(tag);if(text!==undefined)e.textContent=text;if(cls)e.className=cls;return e;}
+function metric(label,value){const e=element('div',undefined,'metric');e.append(element('span',label),element('strong',value));$('metrics').append(e);}
+function rowTable(target,heads,rows){const table=element('table'),head=element('tr');for(const h of heads)head.append(element('th',h));table.append(head);for(const values of rows){const row=element('tr');for(const v of values){const td=element('td');if(v instanceof Node)td.append(v);else td.textContent=String(v??'미확인');row.append(td);}table.append(row);}$(target).replaceChildren(table);}
+function permissions(){
+ const allowed=(id,where)=>$(id).checked?'사용자 허용됨':'기본 비활성 · '+where+'에서 허용';
+ const rows=[['상태·모델·공유·하드웨어 조회',capabilities.serverTools?'사용 가능':'호스트 도구 권한 없음'],['Hub 관리 화면 이동',capabilities.serverTools?'버튼 클릭 시 실행':'호스트 도구 권한 없음'],['모델 준비',allowed('allow-load','모델 탭')],
+  ['파이프라인 시작·재개·중지',allowed('pl-allow','파이프라인 탭')],['하드웨어 정책 변경 (이 PC만)',allowed('hw-allow','하드웨어 탭')],
+  ['AI 컨텍스트 첨부',capabilities.updateModelContext?'사용 가능':'호스트에서 지원하지 않음'],['API 키·다운로드','키는 Hub에서 관리 · 패널 다운로드 없음']];
+ $('permissions').replaceChildren(...rows.map(values=>{const tr=element('tr');tr.append(...values.map(v=>element('td',v)));return tr;}));
+}
+function controls(){
+ const connected=initialized&&Boolean(capabilities.serverTools);$('refresh').disabled=!connected||busy;$('details-refresh').disabled=!connected||detailBusy;
+ document.querySelectorAll('[data-open]').forEach(b=>b.disabled=!connected);
+ $('attach').disabled=!initialized||!capabilities.updateModelContext||!latest||latest.connectionAvailable===false;
+ $('prepare').disabled=!connected||!$('allow-load').checked||!$('model').value||preparing||Boolean(operationId);
+ $('hw-refresh').disabled=!connected||hwBusy;$('hw-save').disabled=$('hw-reset').disabled=!connected||!$('hw-allow').checked||acting||!hwData;
+ $('pl-refresh').disabled=!connected||plBusy;
+ document.querySelectorAll('.pl-btn').forEach(b=>b.disabled=!connected||!$('pl-allow').checked||acting);permissions();
+}
+function render(value){
+ if(!value||value.contractVersion!=='1.0.0')return;latest=value;$('metrics').replaceChildren();
+ metric('CPU',p(value.resources.cpu.usagePercent));metric('RAM',p(value.resources.ram.usagePercent));
+ for(const gpu of value.resources.gpu.devices||[]){metric('GPU '+gpu.index,p(gpu.usagePercent));metric('VRAM '+gpu.index,Number.isFinite(gpu.usedMiB)&&Number.isFinite(gpu.totalMiB)?gpu.usedMiB+' / '+gpu.totalMiB+' MiB':'측정 불가');}
+ if(!value.resources.gpu.available)metric('GPU / VRAM','측정 불가');
+ $('model-preparation').replaceChildren();
+ for(const r of value.modelOperations||[]){
+  if(!['running','deferred'].includes(r.state))continue;
+  const estimate=r.admission?.expected;
+  const text='모델 준비 '+r.requestId.slice(0,8)+' · '+(r.state==='deferred'?'자원 대기':'준비 중')+
+   (estimate?' · 예상 추가 RAM '+gib(estimate.ramBytes)+' · VRAM '+gib(estimate.vramBytes):'')+
+   (r.admission?.reason?' · '+preparationReason(r.admission.reason):'');
+  $('model-preparation').append(element('p',text));
+ }
+ $('summary').textContent='실행 중인 offload 작업 '+(value.offloadJobs??'미확인')+'개 · '+(detailData?'Hub '+detailData.version:'모델·공유 탭에서 연결 상태 조회');
+ $('status').textContent=value.connectionAvailable===false?'Hub 연결 대기 · ai-hub 앱을 실행한 뒤 새로고침하세요.':'측정 '+new Date(value.sampledAt).toLocaleTimeString()+' · 모델 추론 없이 조회';
+ controls();
+}
+function schedule(){clearTimeout(timer);if(!stopped&&initialized&&$('auto').checked&&!document.hidden&&capabilities.serverTools)timer=setTimeout(refresh,Math.min(60000,Number($('interval').value)*2**Math.min(failures,4)));}
+async function refresh(){
+ if(stopped||busy||!initialized||document.hidden||!capabilities.serverTools)return;
+ busy=true;clearTimeout(timer);controls();
+ try{render(await tool('harness_panel_refresh'));failures=0;}catch{$('status').textContent='Hub 연결을 확인하세요. 자동 조회 간격을 늘렸습니다.';failures++;}
+ finally{busy=false;controls();schedule();}
+}
+async function details(){
+ if(detailBusy)return;detailBusy=true;controls();
+ try{
+  detailData=await tool('harness_panel_details');
+  const s=detailData.sharing;$('sharing').textContent=(s.enabled?'공유 연결됨':'공유 연결 없음')+' · '+(s.syncing?'동기화 중':s.paused?'일시 중지':'대기')+' · 최근 '+(s.lastSyncAt?new Date(s.lastSyncAt).toLocaleString():'없음')+(s.hasError?' · 오류: Hub 설정에서 확인':'');
+  const r=detailData.research;
+  $('research-status').textContent=!r||!r.available?'연구 검토 도구·shared 저장소 연결 확인 필요':(r.lastReviewAt?'최근 '+new Date(r.lastReviewAt).toLocaleString():'검토 기록 없음')+' · 후보 '+r.count+'개'+(r.stale?' · 재확인 필요':'')+(r.partial?' · 일부 출처 미확인':'')+' · 결과 측정 '+r.calibrationSamples+'건';
+  rowTable('research-picks',['개선 가설','종류','상태'],(r&&r.selected||[]).map(c=>[c.title,c.kind,c.status]));
+  rowTable('catalog',['런타임','모델','로드','크기'],detailData.providers.flatMap(a=>a.models.length?a.models.map(m=>[a.provider,m.name,m.loaded?'로드됨':'미로드',m.sizeBytes?(m.sizeBytes/1024**3).toFixed(1)+' GiB':'미확인']):[[a.provider,a.available?'모델 없음':'서버·설정 확인 필요','—','—']]));
+  const previous=$('model').value;$('model').replaceChildren(element('option','모델 선택'));$('model').firstChild.value='';
+  for(const a of detailData.providers)for(const m of a.models){const o=element('option',a.provider+' / '+m.name+(m.loaded?' (로드됨)':''));o.value=a.provider+':'+m.handle;$('model').append(o);}
+  if([...$('model').options].some(o=>o.value===previous))$('model').value=previous;
+  if(latest)render(latest);$('notice').textContent='모델·공유·연구 상태를 조회했습니다.';
+ }catch{$('notice').textContent='관리 정보 조회 실패 · Hub 앱과 패널 버전을 확인하고 다시 조회하세요.';}
+ finally{detailBusy=false;controls();}
+}
+function preparationReason(reason){
+ const labels={current_and_projected_usage_fit:'실행 여유 확인',projected_ram_exceeds_budget:'RAM 여유 부족',
+  projected_vram_exceeds_budget:'VRAM 여유 부족',cpu_busy:'CPU 사용 중',gpu_busy:'GPU 사용 중',
+  heavy_application_active:'무거운 앱 실행 중',resource_sample_stale:'측정 갱신 대기',
+  environment_probe_unavailable:'환경 측정 대기',cpu_sample_unavailable:'CPU 측정 대기',
+  ac_power_unconfirmed:'AC 전원 확인 필요',ram_pressure:'RAM 사용량 높음',
+  profile_minimum_ram:'이 모델에 필요한 RAM 부족',profile_minimum_vram_or_unknown:'필요한 GPU 메모리 확인 필요',
+  model_footprint_unknown:'모델 메모리 예상값 확인 필요'};
+ return labels[reason]||'실행 조건 확인 대기';
+}
+function renderOperation(r){
+ $('operation').textContent='요청 '+r.requestId.slice(0,8)+' · '+r.state+(r.hasError?' · 실제 모델 상태를 다시 확인하세요.':'');
+ if(!['running','deferred'].includes(r.state)){operationId=null;clearTimeout(opTimer);if(r.state==='completed')details();}
+ controls();
+}
+async function pollOperation(){
+ if(stopped||!operationId||document.hidden)return;
+ try{renderOperation(await tool('harness_panel_operation',{request_id:operationId}));}
+ catch{$('operation').textContent='준비 상태 조회 실패 · 새로 제출하지 않고 모델·연결 다시 조회로 실제 상태를 확인하세요.';}
+ if(operationId&&!stopped)opTimer=setTimeout(pollOperation,5000);
+}
+const RUN_STATUS={running:'실행 중',paused:'검토 대기',completed:'완료',failed:'실패',cancelled:'중지됨'};
+async function loadPipelines(){
+ if(plBusy)return;plBusy=true;controls();
+ try{plData=await tool('harness_panel_pipelines');renderPipelines();}
+ catch(e){$('pipelines').textContent=errText(e,'파이프라인 목록 조회 실패 · Hub 앱을 확인하세요.');}
+ finally{plBusy=false;controls();}
+}
+function renderPipelines(){
+ const list=plData?.pipelines||[];if(!list.length){$('pipelines').textContent='저장된 파이프라인이 없습니다. Hub의 파이프라인 관리에서 만드세요.';return;}
+ rowTable('pipelines',['파이프라인','구성','최근 실행','제어'],list.map(x=>{
+  const r=x.lastRun,running=r?.status==='running',cell=element('div',undefined,'actions');
+  const add=(label,args)=>{const b=element('button',label,'pl-btn');b.addEventListener('click',()=>pipelineAct(x,args));cell.append(b);};
+  if(!running)add('시작',{action:'start',pipeline_id:x.id});if(r?.resumable)add('재개',{action:'resume',run_id:r.runId});if(running||r?.resumable)add('중지',{action:'cancel',run_id:r.runId});
+  const info=element('span',[x.steps+'단계',x.graph&&'그래프',x.auto&&'자동 실행 켜짐'].filter(Boolean).join(' · '));
+  if(x.runsPrograms||x.network)info.append(element('span',' · '+[x.runsPrograms&&'프로그램 실행 포함',x.network&&'네트워크·도구 호출 포함'].filter(Boolean).join(' · '),'warn'));
+  return [x.name,info,r?(RUN_STATUS[r.status]||r.status)+' · '+(r.startedAt?new Date(r.startedAt).toLocaleString():'시각 미확인'):'실행 기록 없음',cell];
+ }));
+ controls();
+}
+async function pipelineAct(x,args){
+ if(acting||!$('pl-allow').checked)return;acting=true;controls();
+ try{const r=await tool('harness_panel_pipeline',{...args,confirmed:true});$('pl-allow').checked=false;$('notice').textContent=x.name+' · '+{start:'시작',resume:'재개',cancel:'중지'}[r.action]+' 요청 완료 · 실행 '+String(r.runId).slice(0,8);}
+ catch(e){$('notice').textContent=errText(e,'파이프라인 제어 실패 · Hub의 파이프라인 관리에서 확인하세요.');}
+ finally{acting=false;controls();loadPipelines();}
+}
+function gateText(g){return !g?'미확인':(g.localAllowed?(g.gpuAllowed?'허용 · GPU 사용 가능':'허용 · CPU만'):'보류')+(g.reasons.length?' · '+g.reasons.join(', '):'');}
+async function hardware(refresh){
+ if(hwBusy)return;hwBusy=true;controls();
+ try{hwData=await tool('harness_panel_hardware',refresh?{refresh:true}:{});renderHardware(hwData);if(refresh)$('notice').textContent='하드웨어를 다시 측정했습니다.';}
+ catch(e){$('hw-env').textContent=errText(e,'하드웨어 조회 실패 · Hub 앱을 확인하세요.');}
+ finally{hwBusy=false;controls();}
+}
+function renderHardware(h){
+ const e=h.environment,s=h.settings,g=h.admission.interactive;
+ $('hw-at').textContent=h.measuredAt?'전원·실행 앱 측정 '+new Date(h.measuredAt).toLocaleTimeString():'전원·실행 앱 측정 전 · 다시 측정을 누르세요';
+ $('hw-env').replaceChildren(...['전원: '+(e.onAcPower===true?'AC 전원':e.onAcPower===false?'배터리':'미확인'),'무거운 앱: '+(e.heavyApps.length?e.heavyApps.join(', '):'없음')+' (감시: '+s.heavyApps.join(', ')+')',
+  'GPU: '+(e.gpu?e.gpu.name+' · VRAM '+gib(e.gpu.vramUsedBytes)+' / '+gib(e.gpu.vramTotalBytes):'전용 GPU 없음·미확인')+' · RAM '+gib(e.ramUsedBytes)+' / '+gib(e.ramTotalBytes),
+  '로컬 추론 슬롯: 실행 '+h.slot.active+' / '+h.slot.maxConcurrent+(h.slot.waiting?' · 대기 '+h.slot.waiting:''),'대화형 로컬 실행: '+gateText(g),'배경 로컬 실행: '+gateText(h.admission.background)].map(t=>element('p',t)));
+ rowTable('hw-routes',['작업','보낼 곳','예상','이유'],h.routes.map(r=>[r.label,r.text,r.expectedMs?secs(r.expectedMs):'—',r.reasons.join(', ')||'—']));
+ rowTable('hw-models',['모델','배치','예상','근거'],h.models.length?h.models.map(m=>[m.name+(m.loaded?' (로드됨)':''),m.placement||'—',m.expectedMs?secs(m.expectedMs)+(m.withinGate?'':' · 기준 초과'):'—',m.basis==='measured-ema'?'실측':m.basis==='heuristic'?'추정':m.note||'—']):[['LM Studio 모델 없음·미연결','—','—','—']]);
+ if(!hwEditing){$('hw-ac').checked=s.requireAcPowerForLocal.value;$('hw-heavy').value=s.heavyAppPolicy.value;$('hw-conc').value=String(s.maxConcurrent.value);}
+ const changed=[s.requireAcPowerForLocal.overridden&&'AC 전원',s.heavyAppPolicy.overridden&&'무거운 앱',s.maxConcurrent.overridden&&'동시 실행'].filter(Boolean);
+ $('hw-overrides').textContent=changed.length?'이 PC에서 바꾼 항목: '+changed.join(', '):'모든 항목이 공유 기본값입니다.';
+}
+async function hardwareSave(args){
+ if(acting||!$('hw-allow').checked)return;acting=true;controls();
+ try{hwData=await tool('harness_panel_hardware_set',{...args,confirmed:true});hwEditing=false;$('hw-allow').checked=false;renderHardware(hwData);$('notice').textContent='이 PC의 하드웨어 정책을 저장했습니다.';}
+ catch(e){$('notice').textContent=errText(e,'하드웨어 정책 저장 실패 · Hub 앱을 확인하세요.');}
+ finally{acting=false;controls();}
+}
+$('hw-refresh').addEventListener('click',()=>hardware(true));$('pl-refresh').addEventListener('click',loadPipelines);
+$('hw-save').addEventListener('click',()=>hardwareSave({require_ac_power:$('hw-ac').checked,heavy_app_policy:$('hw-heavy').value,max_concurrent:Number($('hw-conc').value)}));
+$('hw-reset').addEventListener('click',()=>hardwareSave({reset:true}));
+for(const id of ['hw-ac','hw-heavy','hw-conc'])$(id).addEventListener('change',()=>{hwEditing=true;});
+for(const id of ['pl-allow','hw-allow'])$(id).addEventListener('change',controls);
+$('prepare').addEventListener('click',async()=>{
+ if(preparing||operationId||!$('allow-load').checked)return;preparing=true;controls();
+ const [provider,model_handle]=$('model').value.split(':');
+ try{const r=await tool('harness_panel_prepare',{provider,model_handle,placement:$('placement').value,context_length:Number($('context').value),confirmed:true});operationId=r.requestId;renderOperation(r);if(operationId)opTimer=setTimeout(pollOperation,5000);}
+ catch{$('operation').textContent='모델 준비가 거부되었거나 응답을 확인하지 못했습니다. Hub·런타임에서 상태를 확인한 뒤 새로 조회하세요.';operationId='unknown';}
+ finally{preparing=false;controls();}
+});
+$('details-refresh').addEventListener('click',details);$('model').addEventListener('change',controls);$('allow-load').addEventListener('change',controls);
+document.querySelectorAll('[data-open]').forEach(b=>b.addEventListener('click',async()=>{
+ b.disabled=true;try{await tool('harness_panel_open',{view:b.dataset.open});$('notice').textContent='Hub 관리 화면을 열었습니다.';}catch{$('notice').textContent='ai-hub 앱을 실행한 뒤 관리 화면을 다시 열어주세요.';}finally{controls();}
+}));
+document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{
+ document.querySelectorAll('[data-tab]').forEach(x=>{x.setAttribute('aria-selected',String(x===b));$(x.dataset.tab).hidden=x!==b;});
+ if(['evidence','models'].includes(b.dataset.tab)&&!detailData)details();
+ if(b.dataset.tab==='hardware'&&!hwData)hardware(false);if(b.dataset.tab==='workers'&&!plData)loadPipelines();
+}));
+$('refresh').addEventListener('click',refresh);
+$('attach').addEventListener('click',async()=>{
+ if(!latest||!capabilities.updateModelContext)return;$('attach').disabled=true;
+ try{await request('ui/update-model-context',{content:[{type:'text',text:'Read-only ai-hub measurements:\n'+JSON.stringify(latest)}]});$('notice').textContent='현재 상태를 AI 컨텍스트에 첨부했습니다.';}
+ catch{$('notice').textContent='호스트에서 컨텍스트 첨부를 완료하지 못했습니다.';}finally{controls();}
+});
+function preferences(){
+ const theme=$('theme').value;document.documentElement.dataset.theme=theme==='auto'?(scheme.matches?'dark':'light'):theme;
+ document.body.classList.toggle('large',$('large').checked);document.body.classList.toggle('compact',$('compact').checked);
+ try{localStorage.setItem('ai-hub-panel.preferences',JSON.stringify({theme,large:$('large').checked,compact:$('compact').checked,auto:$('auto').checked,interval:$('interval').value}));}catch{}
+ schedule();
+}
+try{const saved=JSON.parse(localStorage.getItem('ai-hub-panel.preferences')||'{}');for(const k of ['theme','interval'])if([...$(k).options].some(o=>o.value===saved[k]))$(k).value=saved[k];for(const k of ['large','compact','auto'])if(typeof saved[k]==='boolean')$(k).checked=saved[k];}catch{}
+for(const k of ['theme','large','compact','auto','interval'])$(k).addEventListener('change',preferences);scheme.addEventListener('change',preferences);preferences();
+window.addEventListener('message',event=>{
+ if(event.source!==parentWindow||stopped)return;const v=event.data;if(!v||v.jsonrpc!=='2.0')return;
+ if(Object.hasOwn(v,'id')&&!v.method){const item=pending.get(v.id);if(!item)return;pending.delete(v.id);clearTimeout(item.timeout);v.error?item.reject(new Error('Host rejected request')):item.resolve(v.result);return;}
+ if(v.method==='ui/notifications/tool-result'){try{render(parse(v.params));}catch{$('status').textContent='상태 데이터를 읽지 못했습니다.';}}
+ if(v.method==='ping')send({id:v.id,result:{}});
+ if(v.method==='ui/resource-teardown'){stopped=true;clearTimeout(timer);clearTimeout(opTimer);for(const item of pending.values()){clearTimeout(item.timeout);item.reject(new Error('Panel closed'));}pending.clear();send({id:v.id,result:{}});}
+});
+document.addEventListener('visibilitychange',()=>{clearTimeout(timer);clearTimeout(opTimer);if(!document.hidden){refresh();if(operationId&&operationId!=='unknown')pollOperation();}});
+controls();
+if(parentWindow===window)$('status').textContent='이 패널은 Codex의 ai-hub Panel에서 열어주세요.';
+else request('ui/initialize',{appInfo:{name:'ai-hub-harness-panel',version:'1.24.0'},appCapabilities:{},protocolVersion:'2026-01-26'}).then(r=>{
+ if(stopped)return;initialized=true;capabilities=r.hostCapabilities||{};send({method:'ui/notifications/initialized',params:{}});controls();schedule();
+ if(!capabilities.serverTools)$('notice').textContent='호스트 도구 권한이 없어 관리 버튼을 실행할 수 없습니다.';
+}).catch(()=>{$('status').textContent='패널 호스트 연결 실패 · 플러그인을 다시 열어주세요.';});
+</script></body></html>

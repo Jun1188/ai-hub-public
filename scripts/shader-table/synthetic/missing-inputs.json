@@ -1,0 +1,13 @@
+{
+ "schemaVersion": 1,
+ "note": "Synthetic regression: incomplete rows must produce no finding.",
+ "shaders": [
+  {"id": "m1-only-id"},
+  {
+   "id": "m2-half-rows", "capture": {"source": "synthetic"}, "pass": "BasePass", "stage": "pixel",
+   "coordinates": [{"name": "uv", "space": "uv"}],
+   "units": [{"name": "fov", "consumedAs": "radian"}],
+   "observations": {"nanPixels": "many", "drawCalls": 9000, "resourceBytesByFrame": [1, 2]}
+  }
+ ]
+}

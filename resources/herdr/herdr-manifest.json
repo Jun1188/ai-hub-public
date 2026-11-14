@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "version": "0.9.5",
+  "platform": "win32",
+  "arch": "x64",
+  "source": "https://github.com/herdrdev/herdr/releases/download/v0.9.5/herdr-windows-x86_64.zip",
+  "checksumSource": "https://herdr.dev/latest.json",
+  "zipName": "herdr-windows-x86_64.zip",
+  "zipBytes": 10037141,
+  "zipSha256": "d2c6c9c971c43a0bfdde8c692a9a1a7a45c3e4807cd01ae45662b4734fac1cbf",
+  "license": "LICENSE-herdr.txt",
+  "signed": false,
+  "files": {
+    "herdr.exe": "cd877c8744296f4a38a2703bf13cf11728973649ec54959959c4587ffe5368b2",
+    "conpty/conpty.dll": "39fba2713e2495117b1591ae8c32a3b904bea7aa66069cf7815e2844c76d75d8",
+    "conpty/herdr-conpty.json": "c8f499ad82c568e737d6bc7d0b583e3785d2f43af3d2c0cebb856076690533f5",
+    "conpty/arm64/OpenConsole.exe": "ed7622fd0d3bedc9ab9f122f5e58edf0def9e7999224f52dd395ba9f54edbe09",
+    "conpty/x64/OpenConsole.exe": "b7fd936c2668b87b9ecf7b3366dc6568afc1c6f981874cba3e955a1c35cf8160",
+    "LICENSE-herdr.txt": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+    "THIRD-PARTY-NOTICES/Microsoft.Windows.Console.ConPTY-LICENSE.txt": "5d177f23ecfeb0ea8e050b6a5a16355e1ae9a0b286436ca8f83ed08b3795be6b",
+    "THIRD-PARTY-NOTICES/Microsoft.Windows.Console.ConPTY-NOTICE.md": "e7fbaadee6ab20c28b87730a510ee5f5815d8fb4bd88d1d54d282dc2a74c0726"
+  }
+}

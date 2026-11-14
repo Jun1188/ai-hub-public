@@ -1,0 +1,22 @@
+{
+ "schemaVersion": 1,
+ "cases": {
+  "five-shaders": {
+   "s1-clean-lit": {"checks": []},
+   "s2-normal-space": {"checks": ["space-mismatch", "colorspace-mismatch"], "missingInputs": ["drawCallBudget"], "notObserved": ["nan", "resource-growth"]},
+   "s3-units": {"checks": ["unit-mismatch", "unit-mismatch"], "notObserved": ["textures", "nan", "drawcalls", "resource-growth"]},
+   "s4-nan-overdraw": {"checks": ["nan", "drawcalls"], "notObserved": ["coordinates", "units", "textures", "resource-growth"]},
+   "s5-resource-growth": {"checks": ["resource-growth"], "notObserved": ["coordinates", "units", "textures", "drawcalls"]}
+  },
+  "missing-inputs": {
+   "m1-only-id": {"checks": [], "missingInputs": ["pass", "stage"],
+                  "notObserved": ["coordinates", "units", "textures", "nan", "drawcalls", "resource-growth"]},
+   "m2-half-rows": {"checks": [], "missingInputs": ["coordinates.uv", "units.fov", "drawCallBudget"],
+                    "notObserved": ["textures", "nan", "resource-growth"]}
+  },
+  "false-positive": {
+   "f1-at-the-edge": {"checks": []},
+   "f2-sawtooth": {"checks": [], "notObserved": ["drawcalls"]}
+  }
+ }
+}

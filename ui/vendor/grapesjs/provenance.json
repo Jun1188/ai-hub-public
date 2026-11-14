@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "id": "grapesjs",
+  "version": "0.23.9",
+  "source": "https://registry.npmjs.org/grapesjs/-/grapesjs-0.23.9.tgz",
+  "integrity": "sha512-YUJEETGQDSsz8pSyJCj68EPgYKThDZNoNA9+Lu10/XP/7no86gmKdS+F6kEyL49Yf8H1+KARIvH4K+1acXto3Q==",
+  "license": "BSD-3-Clause",
+  "files": {
+    "grapes.min.js": "559073c5114f8eb0f8cb788e64b2a204492eb6ecd3b720e3539341f3b2f2d7b9",
+    "grapes.min.css": "fb55e939b3349c280d68c0617dc87e56baa3eab55ea56a1855db9f5efcc7268d",
+    "LICENSE": "1a7603ac82661e3ec4f0ad015e37f68ab62c85c725f07659b81760edb459ff8d"
+  },
+  "distribution": "Pinned upstream browser distribution; no npm installation or build executed."
+}
