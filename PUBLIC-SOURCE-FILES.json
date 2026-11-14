@@ -169,8 +169,8 @@
     },
     {
       "path": "electron/public-validation.js",
-      "bytes": 2337,
-      "sha256": "64a425aeb434281a9a6e339b59dfdbee5b08698d3d1d97a282fc6ad73e3ce4e0"
+      "bytes": 2349,
+      "sha256": "3d628b010c7955d3dd22fe0b4ce7c5cf650d57b0ec7daa360c23506e3f4402a3"
     },
     {
       "path": "electron/startup.js",
@@ -954,8 +954,8 @@
     },
     {
       "path": "scripts/test-public-boundary.js",
-      "bytes": 4075,
-      "sha256": "e3ef010199b741b3f1a473d7b7cfc7211baec014611e04b38ed676e049d6e841"
+      "bytes": 4438,
+      "sha256": "3cdfc7a1dddd5f44118ad006a0ddd4ce9da6d6389fbee77dae86a12346c74d14"
     },
     {
       "path": "scripts/test-queue-device-profile.js",
@@ -2484,8 +2484,8 @@
     },
     {
       "path": "ui/index.html",
-      "bytes": 86778,
-      "sha256": "1894750ba22344f230fb344dfb48dcb2e4207ed5b336d235543ca2b3933bcbe4"
+      "bytes": 86684,
+      "sha256": "5cf2eac072254065b7b687edaf870738aa8fb9e7594f6d60a95d17d1aee8fccc"
     },
     {
       "path": "ui/knowledge-graph.css",
@@ -2764,6 +2764,6 @@
     }
   ],
   "fileCount": 552,
-  "bytes": 6622836,
+  "bytes": 6623117,
   "scope": "Public application source and vendor license/provenance files. Dependency installs, executable build inputs, user profiles and private operational documents are excluded. Pattern scanning supplements reviewed source boundaries; it is not proof of absence of every secret."
 }

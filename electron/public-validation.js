@@ -16,7 +16,7 @@ function attach({app,window,config}) {
     let report;
     try {
       const cfg=config.load();
-      const ui=await window.webContents.executeJavaScript(`({title:document.title,publicBanner:document.body.innerText.includes('공개 경량판'),visibleTabs:[...document.querySelectorAll('#tabs button[data-tab]')].filter(el=>!el.hidden).map(el=>el.dataset.tab),queueTabs:['done','followup'].every(id=>!!document.querySelector('#tabs button[data-tab="'+id+'"]')),dashboardReady:document.body.innerText.includes('독립 프로필')})`);
+      const ui=await window.webContents.executeJavaScript(`({title:document.title,publicBanner:document.body.innerText.includes('공개 경량판'),visibleTabs:[...document.querySelectorAll('#tabs button[data-tab]')].filter(el=>!el.hidden).map(el=>el.dataset.tab),queueTabs:['done','followup'].every(id=>document.querySelectorAll('#tabs button[data-tab="'+id+'"]').length===1),dashboardReady:document.body.innerText.includes('독립 프로필')})`);
       const screenshot=await window.webContents.capturePage();
       fs.mkdirSync(path.dirname(target),{recursive:true});
       fs.writeFileSync(target.replace(/\.json$/i,'')+'.png',screenshot.toPNG());
